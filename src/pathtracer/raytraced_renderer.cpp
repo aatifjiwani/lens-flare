@@ -283,6 +283,7 @@ void RaytracedRenderer::start_raytracing() {
   pt->bvh = bvh;
   pt->camera = camera;
   pt->scene = scene;
+  pt->find_sun_pos();
 
   if (!render_cell) {
     frameBuffer.clear();

@@ -25,6 +25,21 @@ PathTracer::~PathTracer() {
   delete hemisphereSampler;
 }
 
+void PathTracer::find_sun_pos() {
+  cout << "have num lights " << scene->lights.size() << endl;
+  for (SceneLight* light : scene->lights) {
+    if (dynamic_cast<const DirectionalLight*>(light) != NULL) {
+      DirectionalLight* dlight = (DirectionalLight*) light;
+      if (dlight->radiance.norm() == 0) {
+        std::cout << "Analyzing Directional Light with world coords: " << dlight->posLight << std::endl;
+        camera->analyze_world_coord(dlight->posLight);
+      }
+
+
+    }
+  }
+}
+
 void PathTracer::set_frame_size(size_t width, size_t height) {
   sampleBuffer.resize(width, height);
   sampleCountBuffer.resize(width * height);

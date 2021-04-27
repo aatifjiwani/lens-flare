@@ -184,6 +184,22 @@ void Camera::load_settings(string filename) {
   cout << "[Camera] Loaded settings from " << filename << endl;
 }
 
+void Camera::analyze_world_coord(Vector3D& pos_world) {
+  double hFOV_rads = this->hFov * (PI / 180.0); // x
+  double vFOV_rads = this->vFov * (PI / 180.0); // y
+
+  double edge_x = tan(0.5 * hFOV_rads); //
+  double edge_y = tan(0.5 * vFOV_rads);
+
+  Vector3D pos_camera = c2w.T() * (pos_world - pos);
+  cout << "position of coord in camera: " << pos_camera << endl;
+
+  Vector3D pos_image = pos_camera / abs(pos_camera.z);
+  cout << "position of coord on image plane in camera: " << pos_image << endl;
+
+  cout << "camera image plane edges x,y: " << edge_x << ", " << edge_y << endl;
+}
+
 /**
  * This function generates a ray from camera perspective, passing through camera / sensor plane (x,y)
  */

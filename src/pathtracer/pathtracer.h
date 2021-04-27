@@ -38,6 +38,11 @@ namespace CGL {
         void write_to_framebuffer(ImageBuffer& framebuffer, size_t x0, size_t y0, size_t x1, size_t y1);
 
         /**
+         * Testing functions
+         */
+         void find_sun_pos();
+
+        /**
          * If the pathtracer is in READY, delete all internal data, transition to INIT.
          */
         void clear();

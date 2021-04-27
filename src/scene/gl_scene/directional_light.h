@@ -14,13 +14,19 @@ class DirectionalLight : public SceneLight {
   DirectionalLight(const Collada::LightInfo& light_info, 
                    const Matrix4x4& transform) {
     this->spectrum = light_info.spectrum;
-    this->direction = -(transform * Vector4D(light_info.direction, 1)).to3D();
-    this->direction.normalize();
+//    this->direction = -(transform * Vector4D(light_info.direction, 1)).to3D();
+//    this->direction.normalize();
+    // Begin -- Lens Flare
+    this->position = -(transform * Vector4D(light_info.direction, 1)).to3D();
+    std::cout << "found directional light with position " << -this->position << " and spec " << this->spectrum << std::endl;
+    this->direction = (this->position).unit();
+    // End -- Lens Flare
+
   }
 
   SceneObjects::SceneLight *get_static_light() const {
     SceneObjects::DirectionalLight* l = 
-      new SceneObjects::DirectionalLight(spectrum, direction);
+      new SceneObjects::DirectionalLight(spectrum, position, direction);
     return l;
   }
 
@@ -37,7 +43,7 @@ class DirectionalLight : public SceneLight {
 
   Vector3D spectrum;
   Vector3D direction;
-
+  Vector3D position;
 };
 
 } // namespace GLScene

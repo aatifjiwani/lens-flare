@@ -15,13 +15,14 @@ namespace CGL { namespace SceneObjects {
 
 class DirectionalLight : public SceneLight {
  public:
-  DirectionalLight(const Vector3D rad, const Vector3D lightDir);
+  DirectionalLight(const Vector3D rad, const Vector3D posLight, const Vector3D lightDir);
   Vector3D sample_L(const Vector3D p, Vector3D* wi, double* distToLight,
                     double* pdf) const;
   bool is_delta_light() const { return true; }
 
- private:
+  Vector3D posLight;
   Vector3D radiance;
+private:
   Vector3D dirToLight;
 
 }; // class Directional Light

@@ -8,9 +8,10 @@ namespace CGL { namespace SceneObjects {
 
 // Directional Light //
 
-DirectionalLight::DirectionalLight(const Vector3D rad,
+DirectionalLight::DirectionalLight(const Vector3D rad,const Vector3D posLight,
                                    const Vector3D lightDir)
     : radiance(rad) {
+  this->posLight = -posLight;
   dirToLight = -lightDir.unit();
 }
 
