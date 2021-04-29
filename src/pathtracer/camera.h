@@ -5,6 +5,7 @@
 
 #include "scene/collada/camera_info.h"
 #include "CGL/matrix3x3.h"
+#include "CGL/lodepng.h"
 
 #include "math.h"
 #include "ray.h"
@@ -25,6 +26,34 @@ struct CameraApertureTexture {
       /*
        * Process the pixels, capture values (need to experiment with the values it should take)
        */
+      const char* file = aperture_filename.c_str();
+      string absolute_path = resolve_path(file);
+
+      vector<unsigned char> texels;
+      unsigned int width, height;
+
+      int response = lodepng::decode(texels, width, height, absolute_path);
+      if (response) {
+        cout << "UNABLE TO LOAD APERTURE FUNCTION" << endl;
+      } else {
+        cout << "Loaded Aperture Function with (W, H): (" << width << ", " << height << ")\n";
+      }
+
+      this->width = width;
+      this->height = height;
+      aperture.reserve(width * height);
+
+      // Only Capture the Red Channel (Aperture Function is in Grayscale)
+      cout << "Number of Pixels to Process: " << texels.size() << endl;
+
+      // Channel = 0
+      for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+          unsigned char curr_texel = texels[4 * (y * width + x)];
+          Color curr_color = Color(&curr_texel);
+          aperture.push_back(curr_color.r);
+        }
+      }
     }
 
     float sample_aperture(float u, float v);

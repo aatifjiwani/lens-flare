@@ -34,7 +34,8 @@ Application::Application(AppConfig config, bool gl) {
     config.pathtracer_direct_hemisphere_sample,
     config.pathtracer_filename,
     config.pathtracer_lensRadius,
-    config.pathtracer_focalDistance
+    config.pathtracer_focalDistance,
+    config.aperture_filename
   );
   filename = config.pathtracer_filename;
 }
