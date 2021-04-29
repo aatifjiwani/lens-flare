@@ -41,8 +41,8 @@ void PathTracer::find_sun_pos() {
     }
   }
 
-  for (Vector2D& fo : flare_origins ) {
-    cout << "found directional light at norm image coords: " << fo << endl;
+  for (int l = 0; l < flare_origins.size(); l++ ) {
+    cout << "found directional light at norm image coords: " << flare_origins[l] << " w radiance " << flare_radiance[l] << endl;
   }
 }
 
@@ -351,8 +351,10 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
   /*
    * Start of Lens Flare Starburst Experiment:
    */
+  Vector3D starburst_radiance = raytrace_starburst(x, y);
+//  cout << starburst_radiance << endl;
 
-  sampleBuffer.update_pixel(total_radiance, x, y);
+  sampleBuffer.update_pixel(total_radiance + starburst_radiance, x, y);
     
   //uncomment 4
   //sampleCountBuffer[x + y * sampleBuffer.w] = num_samples;
@@ -374,11 +376,16 @@ Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
     Vector2D normalized_coord = Vector2D(normalized_x, normalized_y);
 
     for (int l = 0; l < flare_origins.size(); l++) {
+      Vector2D& fo = flare_origins[l];
+      Vector2D fo_s = Vector2D(fo.x * (double)sampleBuffer.w, fo.y * (double) sampleBuffer.h);
+      double r = max(1.0, (fo_s - sample_position).norm());
+      double r2 = r*r;
 
+      total_starburst_radiance += flare_radiance[l] / r2;
     }
   }
 
-  return;
+  return total_starburst_radiance / (double) num_samples;
 }
 
 void PathTracer::autofocus(Vector2D loc) {

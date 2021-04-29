@@ -9,10 +9,28 @@
 #include "math.h"
 #include "ray.h"
 
+using namespace std;
 
 namespace CGL {
 
-/**
+struct CameraApertureTexture {
+    size_t width;
+    size_t height;
+    std::vector<float> aperture;
+
+    void init(std::string aperture_filename) {
+      width = 0;
+      height = 0;
+
+      /*
+       * Process the pixels, capture values (need to experiment with the values it should take)
+       */
+    }
+
+    float sample_aperture(float u, float v);
+};
+
+    /**
  * Camera.
  */
 class Camera {
@@ -95,6 +113,7 @@ class Camera {
   // Lens aperture and focal distance for depth of field effects.
   double lensRadius;
   double focalDistance;
+  CameraApertureTexture* aperture_texture;
 
  private:
   // Computes pos, screenXDir, screenYDir from target, r, phi, theta.

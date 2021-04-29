@@ -47,7 +47,8 @@ RaytracedRenderer::RaytracedRenderer(size_t ns_aa,
                        bool direct_hemisphere_sample,
                        string filename,
                        double lensRadius,
-                       double focalDistance) {
+                       double focalDistance,
+                       std::string aperture_filename) {
   state = INIT;
 
   pt = new PathTracer();
@@ -64,6 +65,7 @@ RaytracedRenderer::RaytracedRenderer(size_t ns_aa,
 
   this->lensRadius = lensRadius;
   this->focalDistance = focalDistance;
+  this->aperture_filename = aperture_filename;
 
   this->filename = filename;
 
@@ -141,6 +143,12 @@ void RaytracedRenderer::set_camera(Camera *camera) {
   camera->focalDistance = focalDistance;
   camera->lensRadius = lensRadius;
   this->camera = camera;
+
+  // Begin Lens Flare Implementation
+  CameraApertureTexture* apertureTexture = new CameraApertureTexture();
+  apertureTexture->init(this->aperture_filename);
+
+  this->camera->aperture_texture = apertureTexture;
 
   if (has_valid_configuration()) {
     state = READY;
