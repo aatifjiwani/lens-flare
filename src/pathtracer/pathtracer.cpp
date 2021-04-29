@@ -30,13 +30,19 @@ void PathTracer::find_sun_pos() {
   for (SceneLight* light : scene->lights) {
     if (dynamic_cast<const DirectionalLight*>(light) != NULL) {
       DirectionalLight* dlight = (DirectionalLight*) light;
-      if (dlight->radiance.norm() == 0) {
-        std::cout << "Analyzing Directional Light with world coords: " << dlight->posLight << std::endl;
-        camera->analyze_world_coord(dlight->posLight);
+      std::cout << "Analyzing Directional Light with world coords: " << dlight->posLight << std::endl;
+      double ns_x, ns_y;
+      camera->analyze_world_coord(dlight->posLight, ns_x, ns_y);
+
+      if ((ns_x >= 0 && ns_x <= 1) && (ns_y >= 0 && ns_y <=1)) {
+        flare_origins.emplace_back(ns_x, ns_y);
+        flare_radiance.push_back(dlight->radiance);
       }
-
-
     }
+  }
+
+  for (Vector2D& fo : flare_origins ) {
+    cout << "found directional light at norm image coords: " << fo << endl;
   }
 }
 
@@ -342,12 +348,37 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
   //total_radiance /= (double) num_samples;
   total_radiance /= (double) sample;
 
+  /*
+   * Start of Lens Flare Starburst Experiment:
+   */
+
   sampleBuffer.update_pixel(total_radiance, x, y);
     
   //uncomment 4
   //sampleCountBuffer[x + y * sampleBuffer.w] = num_samples;
   sampleCountBuffer[x + y * sampleBuffer.w] = sample;
 
+}
+
+Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
+  Vector3D total_starburst_radiance = Vector3D();
+  Vector2D origin = Vector2D(x, y);
+  int sample;
+  int num_samples = 16;
+
+  for (sample = 1; sample <= num_samples; sample++) {
+    Vector2D sample_position = origin + gridSampler->get_sample(); // should return something between ([x, x+1], [y, y+1])
+    double normalized_x = sample_position.x / (double) sampleBuffer.w; // normalize coordinates
+    double normalized_y = sample_position.y / (double) sampleBuffer.h;
+
+    Vector2D normalized_coord = Vector2D(normalized_x, normalized_y);
+
+    for (int l = 0; l < flare_origins.size(); l++) {
+
+    }
+  }
+
+  return;
 }
 
 void PathTracer::autofocus(Vector2D loc) {

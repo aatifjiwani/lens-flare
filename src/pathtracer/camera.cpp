@@ -184,7 +184,7 @@ void Camera::load_settings(string filename) {
   cout << "[Camera] Loaded settings from " << filename << endl;
 }
 
-void Camera::analyze_world_coord(Vector3D& pos_world) {
+void Camera::analyze_world_coord(Vector3D& pos_world, double& ns_x, double& ns_y) {
   double hFOV_rads = this->hFov * (PI / 180.0); // x
   double vFOV_rads = this->vFov * (PI / 180.0); // y
 
@@ -198,6 +198,20 @@ void Camera::analyze_world_coord(Vector3D& pos_world) {
   cout << "position of coord on image plane in camera: " << pos_image << endl;
 
   cout << "camera image plane edges x,y: " << edge_x << ", " << edge_y << endl;
+
+//  double camera_space_x = edge_x * (2 * x - 1);
+//  double camera_space_y = edge_y * (2 * y - 1);
+  /*
+   * (csx / ex) = 2x - 1
+   * (csx/ex) + 1 = 2x
+   * x = ((csx/ex)+1)/2
+   */
+
+  // Normalized Screen Coords
+  ns_x = ((pos_image.x / edge_x)+1)/2.0;
+  ns_y = ((pos_image.y / edge_y)+1)/2.0;
+
+  cout << "normalized screen space coords: (x,y) = (" << ns_x << ", " << ns_y << ")\n";
 }
 
 /**

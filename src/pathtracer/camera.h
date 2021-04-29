@@ -76,7 +76,7 @@ class Camera {
   virtual void dump_settings(std::string filename);
   virtual void load_settings(std::string filename);
 
-  void analyze_world_coord(Vector3D& pos_world);
+  void analyze_world_coord(Vector3D& pos_world, double& ns_x, double& ns_y);
 
   /**
    * Returns a world-space ray from the camera that corresponds to a

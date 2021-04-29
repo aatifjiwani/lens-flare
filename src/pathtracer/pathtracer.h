@@ -73,6 +73,11 @@ namespace CGL {
          */
         void raytrace_pixel(size_t x, size_t y);
 
+        /**
+         * Trace the starburst given by the pixel coordinate.
+         */
+        Vector3D raytrace_starburst(size_t x, size_t y);
+
         // Integrator sampling settings //
 
         size_t max_ray_depth; ///< maximum allowed ray depth (applies to all rays)
@@ -99,6 +104,9 @@ namespace CGL {
 
         Scene* scene;         ///< current scene
         Camera* camera;       ///< current camera
+
+        std::vector<Vector2D> flare_origins; ///< normalized screen space origins of flares
+        std::vector<Vector3D> flare_radiance; ///< radiance of captured directional light sources
 
         // Tonemapping Controls //
 
