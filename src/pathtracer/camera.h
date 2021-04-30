@@ -2,6 +2,7 @@
 #define CGL_CAMERA_H
 
 #include <iostream>
+#include <set>
 
 #include "scene/collada/camera_info.h"
 #include "CGL/matrix3x3.h"
@@ -19,6 +20,8 @@ struct CameraApertureTexture {
     size_t height;
     std::vector<float> aperture;
 
+    // Bounding Box
+    int min_x, min_y, max_x, max_y;
     void init(std::string aperture_filename) {
       width = 0;
       height = 0;
@@ -47,13 +50,33 @@ struct CameraApertureTexture {
       cout << "Number of Pixels to Process: " << texels.size() << endl;
 
       // Channel = 0
+      min_x = min_y = width;
+      max_x = max_y = -1;
       for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
           unsigned char curr_texel = texels[4 * (y * width + x)];
           Color curr_color = Color(&curr_texel);
           aperture.push_back(curr_color.r);
+
+          if (curr_color.r > 0) {
+            min_x = min(x, min_x);
+            min_y = min(y, min_y);
+
+            max_x = max(x, max_x);
+            max_y = max(y, max_y);
+          }
         }
       }
+
+      cout << "Bounding Box (x1,y1) - (x2,y2): (" << min_x << ", " << min_y
+        << ") - (" << max_x << ", " << max_y << ")\n";
+
+      // Debug Stuff
+      set<float, greater<float>> unique(aperture.begin(), aperture.end());
+      for (auto uitr = unique.begin(); uitr != unique.end(); uitr++) {
+        cout << "Found unique value: " << *uitr << endl;
+      }
+
     }
 
     float sample_aperture(float u, float v);
