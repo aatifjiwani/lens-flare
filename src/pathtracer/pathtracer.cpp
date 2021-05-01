@@ -367,30 +367,34 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
 
 }
 
-std::complex<double> complex_exp(double exponent) {
+std::complex<double> complex_exp(double exponent, bool negative) {
   /*
    * Perform exp(-1 * j * 2 * PI * exponent)
    * = cos(-2 * PI * exponent) + jsin(-2 * PI * exponent);
    * = cos(2 * PI * exponent) - jsin(2 * PI * exponent);
    */
   double cos_value = cos(2.0 * M_PI * exponent);
-  double sin_value = -1.0 * sin(2.0 * M_PI * exponent);
-  std::complex<double> exponential (cos_value, sin_value);
+  double sin_value = sin(2.0 * M_PI * exponent);
+  if (negative)
+    sin_value *= -1.0;
+  std::complex<double> exponential(cos_value, sin_value);
 
   return exponential;
 }
 
-std::complex<double> PathTracer::compute_phase(size_t right, size_t down) {
-  for (int l = 0; l < flare_origins.size(); l++) {
-    Vector2D& fo = flare_origins[l];
+std::complex<double> PathTracer::compute_phase(int flare, size_t right, size_t down) {
+  Vector2D& fo = flare_origins[flare];
 
-    // convert [0, 1] x [0, 1] to [0, width] x [0, height]
-    Vector2D fo_s = Vector2D(fo.x * (double)sampleBuffer.w, fo.y * (double)sampleBuffer.h);
+  // convert [0, 1] x [0, 1] to [0, width] x [0, height]
+  double u = fo.x * (double)sampleBuffer.w;
+  double v = fo.y * (double)sampleBuffer.h;
 
-    // convert [0, width] x [0, height] to [-width / 2, width / 2] x [-height / 2, height / 2]
-    fo_s.x = -fo_s.x + (double)sampleBuffer.w / 2.0;
-    fo_s.y += (double)sampleBuffer.h / 2.0;
-  }
+  // convert [0, width] x [0, height] to [-width / 2, width / 2] x [-height / 2, height / 2]
+  // smaller heights are higher up
+  u = -u + (double)sampleBuffer.w / 2.0;
+  v -= (double)sampleBuffer.h / 2.0;
+
+  return complex_exp(u * right + v * down, false);
 }
 
 double convertCoordinate(size_t pixel_coord, int length, bool y){
@@ -434,7 +438,7 @@ Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
 //      }
 
       double exponent = u * xprime + v * yprime;
-      std::complex<double> complex_exponential = complex_exp(exponent);
+      std::complex<double> complex_exponential = complex_exp(exponent, true);
 //      if (yc == aperture_function->min_y && xc == aperture_function->min_x) {
 //        double exp = 2.0 * PI * exponent;
 //

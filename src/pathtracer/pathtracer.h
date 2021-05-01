@@ -82,9 +82,9 @@ namespace CGL {
         Vector3D raytrace_starburst(size_t x, size_t y);
 
         /**
-         * Compute the phase value given the horizontal and vertical shifts.
+         * Compute the phase value given the horizontal and vertical shifts for the flare at the given index.
          */
-        std::complex<double> PathTracer::compute_phase(size_t right, size_t down);
+        std::complex<double> PathTracer::compute_phase(int flare, size_t right, size_t down);
 
         // Integrator sampling settings //
 
