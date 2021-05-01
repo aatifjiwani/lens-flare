@@ -391,8 +391,8 @@ std::complex<double> PathTracer::compute_phase(int flare, size_t right, size_t d
 
   // convert [0, width] x [0, height] to [-width / 2, width / 2] x [-height / 2, height / 2]
   // smaller heights are higher up
-  u = -u + (double)sampleBuffer.w / 2.0;
-  v -= (double)sampleBuffer.h / 2.0;
+  u -= (double)sampleBuffer.w / 2.0;
+  v = -v + (double)sampleBuffer.h / 2.0;
 
   return complex_exp(u * right + v * down, false);
 }
