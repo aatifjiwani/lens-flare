@@ -76,6 +76,7 @@ namespace CGL {
         /**
          * Trace the starburst given by the pixel coordinate.
          */
+        Vector3D raytrace_starburst_experiment(size_t x, size_t y);
         Vector3D raytrace_starburst(size_t x, size_t y);
 
         // Integrator sampling settings //

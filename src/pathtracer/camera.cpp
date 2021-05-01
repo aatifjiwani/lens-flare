@@ -3,10 +3,12 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <cmath>
 
 #include "CGL/misc.h"
 #include "CGL/vector2D.h"
 #include "CGL/vector3D.h"
+#include "util/random_util.h"
 
 using std::cout;
 using std::endl;
@@ -18,6 +20,44 @@ using std::ofstream;
 namespace CGL {
 
 using Collada::CameraInfo;
+
+float CameraApertureTexture::pdf() {
+  float total_area = (float) width * height;
+  float bounding_box_area = ((float) (max_x - min_x)) * ((float) (max_y - min_y));
+
+  return bounding_box_area / total_area;
+}
+
+float CameraApertureTexture::sample_aperture(float &u, float &v) {
+  /*
+   * Sample (u,v) coordinate in the Aperture's Bounding Box
+   * Return the sampled value
+   * Set &u, &v to the sampled coordinates
+   *
+   * !! IMPORTANT: Ensure that the interval for (u) is [-0.5, 0.5] and likewise for (v)
+   * !! with (0,0) at the CENTER of the aperture
+   */
+
+  // Sample uniform in [0,1]
+  double u_sample = random_uniform();
+  double v_sample = random_uniform();
+
+  double u_coordinate = min_x + u_sample * (max_x - min_x);
+  double v_coordinate = min_y + v_sample * (max_y - min_y);
+
+  int u_pixel = (int) round(u_coordinate); // Pixel Values i.e. 250
+  int v_pixel = (int) round(v_coordinate);
+
+  float sampled_value = aperture[v_pixel * width + u_pixel];
+
+  float u_global_coord = (float) u_pixel / (float) width;
+  float v_global_coord = (float) v_pixel / (float) height;
+
+  u = u_global_coord - 0.5;
+  v = v_global_coord - 0.5;
+
+  return sampled_value;
+}
 
 /**
  * Sets the field of view to match screen screenW/H.

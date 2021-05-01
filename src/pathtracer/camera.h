@@ -79,7 +79,9 @@ struct CameraApertureTexture {
 
     }
 
-    float sample_aperture(float u, float v);
+    float sample_aperture(float& u, float& v);
+    float pdf();
+
 };
 
     /**
@@ -166,6 +168,7 @@ class Camera {
   double lensRadius;
   double focalDistance;
   CameraApertureTexture* aperture_texture;
+//  CameraLensStructure* ...
 
  private:
   // Computes pos, screenXDir, screenYDir from target, r, phi, theta.
