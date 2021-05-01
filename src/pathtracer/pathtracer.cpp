@@ -379,6 +379,19 @@ std::complex<double> complex_exp(double exponent) {
   return exponential;
 }
 
+std::complex<double> PathTracer::compute_phase(size_t right, size_t down) {
+  for (int l = 0; l < flare_origins.size(); l++) {
+    Vector2D& fo = flare_origins[l];
+
+    // convert [0, 1] x [0, 1] to [0, width] x [0, height]
+    Vector2D fo_s = Vector2D(fo.x * (double)sampleBuffer.w, fo.y * (double)sampleBuffer.h);
+
+    // convert [0, width] x [0, height] to [-width / 2, width / 2] x [-height / 2, height / 2]
+    fo_s.x = -fo_s.x + (double)sampleBuffer.w / 2.0;
+    fo_s.y += (double)sampleBuffer.h / 2.0;
+  }
+}
+
 Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
   double xprime, yprime;
   std::complex<double> complex_intensity;

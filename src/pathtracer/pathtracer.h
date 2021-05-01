@@ -1,6 +1,8 @@
 #ifndef CGL_PATHTRACER_H
 #define CGL_PATHTRACER_H
 
+#include <complex>
+
 #include "CGL/timer.h"
 
 #include "scene/bvh.h"
@@ -78,6 +80,11 @@ namespace CGL {
          */
         Vector3D raytrace_starburst_experiment(size_t x, size_t y);
         Vector3D raytrace_starburst(size_t x, size_t y);
+
+        /**
+         * Compute the phase value given the horizontal and vertical shifts.
+         */
+        std::complex<double> PathTracer::compute_phase(size_t right, size_t down);
 
         // Integrator sampling settings //
 
