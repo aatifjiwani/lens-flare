@@ -354,8 +354,9 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
   /*
    * Start of Lens Flare Starburst Experiment:
    */
-  raytrace_starburst(x, y);
-  Vector3D starburst_radiance = raytrace_starburst_experiment(x, y);
+  Vector3D starburst_radiance = raytrace_starburst(x, y);
+  cout << "(x, y, radiance): (" << x << ", " << y << ", " << starburst_radiance << ")\n";
+//  Vector3D starburst_radiance = raytrace_starburst_experiment(x, y);
 //  cout << starburst_radiance << endl;
 
   sampleBuffer.update_pixel(total_radiance + starburst_radiance, x, y);
@@ -392,6 +393,20 @@ std::complex<double> PathTracer::compute_phase(size_t right, size_t down) {
   }
 }
 
+double convertCoordinate(size_t pixel_coord, int length, bool y){
+  double coord_center;
+  if (y){
+    coord_center = -((float) pixel_coord) + ((float)length / 2.0);
+  } else {
+    coord_center = ((float) pixel_coord) - ((float)length / 2.0);
+  }
+
+  if (coord_center >= 0) {
+    return coord_center;
+  }
+  return length + coord_center;
+}
+
 Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
   double xprime, yprime;
   std::complex<double> complex_intensity;
@@ -400,10 +415,13 @@ Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
   int num_samples = 300;
 
   // Xprime = X - (W/2)
-  xprime = (double) x + 50.0; //((float) x) - ((float)sampleBuffer.w / 2.0);
+//  xprime = (double) x + 125.0; //((float) x) - ((float)sampleBuffer.w / 2.0);
 
   // Yprime = -Y + (H/2)
-  yprime = (double) y + 50.0; //-((float) y) + ((float)sampleBuffer.h / 2.0);
+//  yprime = (double) y + 100.0; //-((float) y) + ((float)sampleBuffer.h / 2.0);
+
+  xprime = convertCoordinate(x, sampleBuffer.w, false);
+  yprime = convertCoordinate(y, sampleBuffer.h, true);
 
   for (int yc = aperture_function->min_y; yc <= aperture_function->max_y; yc++) {
     for (int xc = aperture_function->min_x; xc <= aperture_function->max_x; xc++) {
@@ -411,30 +429,36 @@ Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
       double u = ((double)xc / (double)aperture_function->width) - 0.5;
       double v = ((double)yc / (double)aperture_function->width) - 0.5;
 
-      if (yc == aperture_function->min_y && xc == aperture_function->min_x) {
-        cout << "U: " << u << " V: " << v << endl;
-      }
+//      if (yc == aperture_function->min_y && xc == aperture_function->min_x) {
+//        cout << "U: " << u << " V: " << v << endl;
+//      }
 
       double exponent = u * xprime + v * yprime;
       std::complex<double> complex_exponential = complex_exp(exponent);
-      if (yc == aperture_function->min_y && xc == aperture_function->min_x) {
-        double exp = 2.0 * PI * exponent;
-
-        cout << "exponent: " << exponent << endl;
-        cout << "2 pi exp: " << exp << endl;
-        cout << "Complex Exp: " << complex_exponential << endl;
-        cout << "R: " << complex_exponential.real() << endl;
-        cout << "I: " << complex_exponential.imag() << endl;
-      }
+//      if (yc == aperture_function->min_y && xc == aperture_function->min_x) {
+//        double exp = 2.0 * PI * exponent;
+//
+//        cout << "exponent: " << exponent << endl;
+//        cout << "2 pi exp: " << exp << endl;
+//        cout << "Complex Exp: " << complex_exponential << endl;
+//        cout << "R: " << complex_exponential.real() << endl;
+//        cout << "I: " << complex_exponential.imag() << endl;
+//      }
 
       std::complex<double> intensity_uv = (sampled_value * complex_exponential);
       complex_intensity += intensity_uv;
     }
   }
 
-  float abs_avg_complex_intensity = abs(complex_intensity);
-  cout << "complex intensity: " << complex_intensity << endl;
-  cout << "value at center of image: " << abs_avg_complex_intensity << endl;
+  double abs_avg_complex_intensity = abs(complex_intensity) / 236.0;
+//  cout << "complex intensity: " << complex_intensity << endl;
+//  cout << "value at center of image: " << abs_avg_complex_intensity << endl;
+
+  for (auto & l : flare_radiance) {
+    total_starburst_radiance += pow(abs_avg_complex_intensity, 2.0) * l;
+  }
+
+  return total_starburst_radiance;
 
 //  for (int s = 0; s < num_samples; s++) {
 //    float u, v;
