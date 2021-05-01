@@ -19,6 +19,7 @@ struct CameraApertureTexture {
     size_t width;
     size_t height;
     std::vector<float> aperture;
+    double total_value;
 
     // Bounding Box
     int min_x, min_y, max_x, max_y;
@@ -52,11 +53,13 @@ struct CameraApertureTexture {
       // Channel = 0
       min_x = min_y = width;
       max_x = max_y = -1;
+      total_value = 0.0;
       for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
           unsigned char curr_texel = texels[4 * (y * width + x)];
           Color curr_color = Color(&curr_texel);
           aperture.push_back(curr_color.r);
+          total_value += curr_color.r;
 
           if (curr_color.r > 0) {
             min_x = min(x, min_x);

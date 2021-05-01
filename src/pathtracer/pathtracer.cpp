@@ -355,7 +355,7 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
    * Start of Lens Flare Starburst Experiment:
    */
   Vector3D starburst_radiance = raytrace_starburst(x, y);
-  cout << "(x, y, radiance): (" << x << ", " << y << ", " << starburst_radiance << ")\n";
+//  cout << "(x, y, radiance): (" << x << ", " << y << ", " << starburst_radiance << ")\n";
 //  Vector3D starburst_radiance = raytrace_starburst_experiment(x, y);
 //  cout << starburst_radiance << endl;
 
@@ -369,13 +369,13 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
 
 std::complex<double> complex_exp(double exponent) {
   /*
-   * Perform exp(-1 * j * 2 * PI * exponent)
+   * Perform e^(-1 * j * 2 * PI * exponent)
    * = cos(-2 * PI * exponent) + jsin(-2 * PI * exponent);
    * = cos(2 * PI * exponent) - jsin(2 * PI * exponent);
    */
   double cos_value = cos(2.0 * M_PI * exponent);
   double sin_value = -1.0 * sin(2.0 * M_PI * exponent);
-  std::complex<double> exponential (cos_value, sin_value);
+  std::complex<double> exponential(cos_value, sin_value);
 
   return exponential;
 }
@@ -437,7 +437,7 @@ Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
     }
   }
 
-  double abs_avg_complex_intensity = abs(complex_intensity) / 236.0;
+  double abs_avg_complex_intensity = abs(complex_intensity) / aperture_function->total_value;
 //  cout << "complex intensity: " << complex_intensity << endl;
 //  cout << "value at center of image: " << abs_avg_complex_intensity << endl;
 
