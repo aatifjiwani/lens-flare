@@ -358,7 +358,7 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
 //  cout << "(x, y, radiance): (" << x << ", " << y << ", " << starburst_radiance << ")\n";
 //  Vector3D starburst_radiance = raytrace_starburst_experiment(x, y);
 //  cout << starburst_radiance << endl;
-  cout << "total radiance: " << total_radiance << ", starburst: " << starburst_radiance << endl;
+//  cout << "total radiance: " << total_radiance << ", starburst: " << starburst_radiance << endl;
   sampleBuffer.update_pixel(total_radiance + starburst_radiance, x, y);
     
   //uncomment 4
@@ -421,6 +421,7 @@ Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
   std::complex<double> complex_intensity;
   Vector3D total_starburst_radiance = Vector3D();
   Vector2D curr_screen_pose = Vector2D(x, y);
+  Vector2D flare_origin;
   CameraApertureTexture* aperture_function = camera->aperture_texture;
   int num_samples = 300;
 
@@ -436,20 +437,9 @@ Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
       double exponent = u * xprime + v * yprime;
       std::complex<double> complex_exponential = complex_exp(exponent, true);
 
-      Vector2D flare_origin;
       std::complex<double> additional_phase = compute_phase(0, u, v, flare_origin);
 
       std::complex<double> intensity_uv = (sampled_value * additional_phase * complex_exponential);
-      // Flare Suppression
-      if ((flare_origin - curr_screen_pose).norm() > ((double) aperture_function->width / 2.0)) {
-        double norm_coord = (flare_origin - curr_screen_pose).norm();
-        double factor = ((double) aperture_function->width / 2.0) / norm_coord; //[0 - 1]
-        double factor2 = pow(factor, 8.0);
-
-        intensity_uv = factor2 * intensity_uv;
-      } else {
-        // Flare Amplification
-      }
 
       complex_intensity += intensity_uv;
     }
@@ -457,8 +447,24 @@ Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
 
   double abs_avg_complex_intensity = abs(complex_intensity) / aperture_function->total_value;
 
+  // Flare Suppression
+  if ((flare_origin - curr_screen_pose).norm() > ((double) aperture_function->width / 2.0)) {
+    double norm_coord = (flare_origin - curr_screen_pose).norm();
+    double factor = ((double) aperture_function->width / 2.0) / norm_coord; //[0 - 1]
+    double factor2 = pow(factor, 8.0);
+
+    abs_avg_complex_intensity = factor2 * abs_avg_complex_intensity;
+  }
+  else if ((flare_origin - curr_screen_pose).norm() <= 20.0) {
+    // Flare Amplification
+    double norm_coord = (flare_origin - curr_screen_pose).norm();
+    double factor = norm_coord / 20.0; //[0 - 1]
+
+    abs_avg_complex_intensity = pow(abs_avg_complex_intensity, factor);
+  }
+
   for (auto & l : flare_radiance) {
-    total_starburst_radiance += pow(abs_avg_complex_intensity, 1.5) * l;
+    total_starburst_radiance += pow(abs_avg_complex_intensity, 2.0) * l;
   }
 
   return total_starburst_radiance;
