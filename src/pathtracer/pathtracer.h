@@ -84,7 +84,7 @@ namespace CGL {
         /**
          * Compute the phase value given the horizontal and vertical shifts for the flare at the given index.
          */
-        std::complex<double> compute_phase(int flare, double u, double v);
+        std::complex<double> compute_phase(int flare, double u, double v, Vector2D& screen_pos);
 
         // Integrator sampling settings //
 

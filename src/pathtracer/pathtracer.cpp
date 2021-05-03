@@ -310,45 +310,45 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
   Vector3D total_radiance = Vector3D();
 
   // BEGIN UNCOMMENT
-//  float s1 = 0.0;
-//  float s2 = 0.0;
-//  int sample = 1;
-//
-//  for (sample = 1; sample <= num_samples; sample++) {
-//      // adaptive sampling
-//
-//      Vector2D sample_position = origin + gridSampler->get_sample(); // should return something between ([x, x+1], [y, y+1])
-//      double normalized_x = sample_position.x / (double) sampleBuffer.w; // normalize coordinates
-//      double normalized_y = sample_position.y / (double) sampleBuffer.h;
-//
-//      Ray to_trace = camera->generate_ray(normalized_x, normalized_y);
-//      to_trace.depth = max_ray_depth;
-//      Vector3D sample_radiance = est_radiance_global_illumination(to_trace);
-//
-//      float illum = sample_radiance.illum();
-//      s1 += illum;
-//      s2 += illum * illum;
-//
-//      // uncomment 1
-//      total_radiance += sample_radiance;
-//      //total_radiance += est_radiance_global_illumination(to_trace);
-//
-//      // uncomment 2
-//      // check only every samplesPerBatch
-//      if (sample > 1 && sample % samplesPerBatch == 0) {
-//          float std = std::sqrt(1.0 / (sample - 1) * (s2 - s1*s1 / sample));
-//          float confidence_interval = 1.96 * std / std::sqrt(sample);
-//          if (confidence_interval <= maxTolerance * s1 / sample) {
-//              break;
-//          }
-//      }
-//
-//  }
-//
-//
-//  // uncomment 3
-//  //total_radiance /= (double) num_samples;
-//  total_radiance /= (double) sample;
+  float s1 = 0.0;
+  float s2 = 0.0;
+  int sample = 1;
+
+  for (sample = 1; sample <= num_samples; sample++) {
+      // adaptive sampling
+
+      Vector2D sample_position = origin + gridSampler->get_sample(); // should return something between ([x, x+1], [y, y+1])
+      double normalized_x = sample_position.x / (double) sampleBuffer.w; // normalize coordinates
+      double normalized_y = sample_position.y / (double) sampleBuffer.h;
+
+      Ray to_trace = camera->generate_ray(normalized_x, normalized_y);
+      to_trace.depth = max_ray_depth;
+      Vector3D sample_radiance = est_radiance_global_illumination(to_trace);
+
+      float illum = sample_radiance.illum();
+      s1 += illum;
+      s2 += illum * illum;
+
+      // uncomment 1
+      total_radiance += sample_radiance;
+      //total_radiance += est_radiance_global_illumination(to_trace);
+
+      // uncomment 2
+      // check only every samplesPerBatch
+      if (sample > 1 && sample % samplesPerBatch == 0) {
+          float std = std::sqrt(1.0 / (sample - 1) * (s2 - s1*s1 / sample));
+          float confidence_interval = 1.96 * std / std::sqrt(sample);
+          if (confidence_interval <= maxTolerance * s1 / sample) {
+              break;
+          }
+      }
+
+  }
+
+
+  // uncomment 3
+  //total_radiance /= (double) num_samples;
+  total_radiance /= (double) sample;
 // END UNCOMMENT
 
   /*
@@ -358,12 +358,12 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
 //  cout << "(x, y, radiance): (" << x << ", " << y << ", " << starburst_radiance << ")\n";
 //  Vector3D starburst_radiance = raytrace_starburst_experiment(x, y);
 //  cout << starburst_radiance << endl;
-
+  cout << "total radiance: " << total_radiance << ", starburst: " << starburst_radiance << endl;
   sampleBuffer.update_pixel(total_radiance + starburst_radiance, x, y);
     
   //uncomment 4
   //sampleCountBuffer[x + y * sampleBuffer.w] = num_samples;
-  sampleCountBuffer[x + y * sampleBuffer.w] = num_samples;
+  sampleCountBuffer[x + y * sampleBuffer.w] = sample;
 
 }
 
@@ -383,12 +383,13 @@ std::complex<double> complex_exp(double exponent, bool negative) {
   return exponential;
 }
 
-std::complex<double> PathTracer::compute_phase(int flare, double u, double v) {
+std::complex<double> PathTracer::compute_phase(int flare, double u, double v, Vector2D& screen_pos) {
   Vector2D& fo = flare_origins[flare];
 
   // convert [0, 1] x [0, 1] to [0, width] x [0, height]
   auto lr = (double) (ceil(fo.x * (double)sampleBuffer.w));
   auto ud = (double) (ceil(fo.y * (double)sampleBuffer.h));
+  screen_pos = Vector2D(lr, ud);
 
   // convert [0, width] x [0, height] to [-width / 2, width / 2] x [-height / 2, height / 2]
   // smaller heights are higher up
@@ -419,14 +420,9 @@ Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
   double xprime, yprime;
   std::complex<double> complex_intensity;
   Vector3D total_starburst_radiance = Vector3D();
+  Vector2D curr_screen_pose = Vector2D(x, y);
   CameraApertureTexture* aperture_function = camera->aperture_texture;
   int num_samples = 300;
-
-  // Xprime = X - (W/2)
-//  xprime = (double) x + 125.0; //((float) x) - ((float)sampleBuffer.w / 2.0);
-
-  // Yprime = -Y + (H/2)
-//  yprime = (double) y + 100.0; //-((float) y) + ((float)sampleBuffer.h / 2.0);
 
   xprime = convertCoordinate(x, sampleBuffer.w, false);
   yprime = convertCoordinate(y, sampleBuffer.h, true);
@@ -437,35 +433,32 @@ Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
       double u = ((double)xc / (double)aperture_function->width) - 0.5;
       double v = ((double)yc / (double)aperture_function->width) - 0.5;
 
-//      if (yc == aperture_function->min_y && xc == aperture_function->min_x) {
-//        cout << "U: " << u << " V: " << v << endl;
-//      }
-
       double exponent = u * xprime + v * yprime;
       std::complex<double> complex_exponential = complex_exp(exponent, true);
 
-      std::complex<double> additional_phase = compute_phase(0, u, v);
-//      if (yc == aperture_function->min_y && xc == aperture_function->min_x) {
-//        double exp = 2.0 * PI * exponent;
-//
-//        cout << "exponent: " << exponent << endl;
-//        cout << "2 pi exp: " << exp << endl;
-//        cout << "Complex Exp: " << complex_exponential << endl;
-//        cout << "R: " << complex_exponential.real() << endl;
-//        cout << "I: " << complex_exponential.imag() << endl;
-//      }
+      Vector2D flare_origin;
+      std::complex<double> additional_phase = compute_phase(0, u, v, flare_origin);
 
       std::complex<double> intensity_uv = (sampled_value * additional_phase * complex_exponential);
+      // Flare Suppression
+      if ((flare_origin - curr_screen_pose).norm() > ((double) aperture_function->width / 2.0)) {
+        double norm_coord = (flare_origin - curr_screen_pose).norm();
+        double factor = ((double) aperture_function->width / 2.0) / norm_coord; //[0 - 1]
+        double factor2 = pow(factor, 8.0);
+
+        intensity_uv = factor2 * intensity_uv;
+      } else {
+        // Flare Amplification
+      }
+
       complex_intensity += intensity_uv;
     }
   }
 
   double abs_avg_complex_intensity = abs(complex_intensity) / aperture_function->total_value;
-//  cout << "complex intensity: " << complex_intensity << endl;
-//  cout << "value at center of image: " << abs_avg_complex_intensity << endl;
 
   for (auto & l : flare_radiance) {
-    total_starburst_radiance += pow(abs_avg_complex_intensity, 2.0) * l;
+    total_starburst_radiance += pow(abs_avg_complex_intensity, 1.5) * l;
   }
 
   return total_starburst_radiance;
