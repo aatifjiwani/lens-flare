@@ -383,19 +383,22 @@ std::complex<double> complex_exp(double exponent, bool negative) {
   return exponential;
 }
 
-std::complex<double> PathTracer::compute_phase(int flare, size_t right, size_t down) {
+std::complex<double> PathTracer::compute_phase(int flare, double u, double v) {
   Vector2D& fo = flare_origins[flare];
 
   // convert [0, 1] x [0, 1] to [0, width] x [0, height]
-  double u = fo.x * (double)sampleBuffer.w;
-  double v = fo.y * (double)sampleBuffer.h;
+  auto lr = (double) (ceil(fo.x * (double)sampleBuffer.w));
+  auto ud = (double) (ceil(fo.y * (double)sampleBuffer.h));
 
   // convert [0, width] x [0, height] to [-width / 2, width / 2] x [-height / 2, height / 2]
   // smaller heights are higher up
-  u -= (double)sampleBuffer.w / 2.0;
-  v = -v + (double)sampleBuffer.h / 2.0;
+  lr -= (double)sampleBuffer.w / 2.0;
+  ud = -ud + (double)sampleBuffer.h / 2.0;
 
-  return complex_exp(u * right + v * down, false);
+//  lr = 100.0;
+//  ud = -100.0;
+
+  return complex_exp(u * lr + v * ud, false);
 }
 
 double convertCoordinate(size_t pixel_coord, int length, bool y){
@@ -440,6 +443,8 @@ Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
 
       double exponent = u * xprime + v * yprime;
       std::complex<double> complex_exponential = complex_exp(exponent, true);
+
+      std::complex<double> additional_phase = compute_phase(0, u, v);
 //      if (yc == aperture_function->min_y && xc == aperture_function->min_x) {
 //        double exp = 2.0 * PI * exponent;
 //
@@ -450,7 +455,7 @@ Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
 //        cout << "I: " << complex_exponential.imag() << endl;
 //      }
 
-      std::complex<double> intensity_uv = (sampled_value * complex_exponential);
+      std::complex<double> intensity_uv = (sampled_value * additional_phase * complex_exponential);
       complex_intensity += intensity_uv;
     }
   }

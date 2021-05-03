@@ -84,7 +84,7 @@ namespace CGL {
         /**
          * Compute the phase value given the horizontal and vertical shifts for the flare at the given index.
          */
-        std::complex<double> PathTracer::compute_phase(int flare, size_t right, size_t down);
+        std::complex<double> compute_phase(int flare, double u, double v);
 
         // Integrator sampling settings //
 
