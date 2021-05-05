@@ -33,6 +33,7 @@ void usage(const char* binaryName) {
   printf("  -d  <FLOAT>      The focal distance\n");
   printf("  -f  <FILENAME>   Image (.png) file to save output to in windowless mode\n");
   printf("  -r  <INT> <INT>  Width and height of output image (if windowless)\n");
+  printf("  -x  <FILENAME>   Image (.png) file for aperture\n");
   printf("  -h               Print this help message\n");
   printf("\n");
 }

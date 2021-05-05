@@ -285,17 +285,9 @@ Vector3D PathTracer::est_radiance_global_illumination(const Ray &r) {
   // If no intersection occurs, we simply return black.
   // This changes if you implement hemispherical lighting for extra credit.
 
-  // The following line of code returns a debug color depending
-  // on whether ray intersection with triangles or spheres has
-  // been implemented.
-  //
-  // REMOVE THIS LINE when you are ready to begin Part 3.
-  
+  // Sample environment light
   if (!bvh->intersect(r, &isect))
     return envLight ? envLight->sample_dir(r) : L_out;
-
-
-//  L_out = (isect.t == INF_D) ? debug_shading(r.d) : normal_shading(isect.n);
 
   // TODO (Part 3): Return the direct illumination.
   L_out = zero_bounce_radiance(r, isect) + one_bounce_radiance(r, isect);
