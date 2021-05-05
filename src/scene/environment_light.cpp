@@ -134,10 +134,10 @@ namespace CGL { namespace SceneObjects {
     *distToLight = INF_D;
     *pdf = 1.0 / (4.0 * PI);
 
+    Vector2D theta_phi = dir_to_theta_phi(*wi);
+    Vector2D xy = theta_phi_to_xy(theta_phi);
 
-
-
-    return Vector3D();
+    return bilerp(xy);
   }
 
   Vector3D EnvironmentLight::sample_dir(const Ray& r) const {
@@ -145,8 +145,10 @@ namespace CGL { namespace SceneObjects {
     // Use the helper functions to convert r.d into (x,y)
     // then bilerp the return value
 
-    return Vector3D();
+    Vector2D theta_phi = dir_to_theta_phi(r.d);
+    Vector2D xy = theta_phi_to_xy(theta_phi);
 
+    return bilerp(xy);
   }
 
 } // namespace SceneObjects
