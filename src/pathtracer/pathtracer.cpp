@@ -396,9 +396,6 @@ std::complex<double> PathTracer::compute_phase(int flare, double u, double v, Ve
   lr -= (double)sampleBuffer.w / 2.0;
   ud = -ud + (double)sampleBuffer.h / 2.0;
 
-//  lr = 100.0;
-//  ud = -100.0;
-
   return complex_exp(u * lr + v * ud, false);
 }
 
@@ -446,7 +443,7 @@ Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
   }
 
   double abs_avg_complex_intensity = abs(complex_intensity) / aperture_function->total_value;
-
+  double radius = 30.0;
   // Flare Suppression
   if ((flare_origin - curr_screen_pose).norm() > ((double) aperture_function->width / 2.0)) {
     double norm_coord = (flare_origin - curr_screen_pose).norm();
@@ -455,10 +452,10 @@ Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
 
     abs_avg_complex_intensity = factor2 * abs_avg_complex_intensity;
   }
-  else if ((flare_origin - curr_screen_pose).norm() <= 20.0) {
+  else if ((flare_origin - curr_screen_pose).norm() <= radius) {
     // Flare Amplification
     double norm_coord = (flare_origin - curr_screen_pose).norm();
-    double factor = norm_coord / 20.0; //[0 - 1]
+    double factor = norm_coord / radius; //[0 - 1]
 
     abs_avg_complex_intensity = pow(abs_avg_complex_intensity, factor);
   }
@@ -467,7 +464,9 @@ Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
     total_starburst_radiance += pow(abs_avg_complex_intensity, 2.0) * l;
   }
 
-  return total_starburst_radiance;
+  Vector3D radiance_falloff = calculate_irradiance_falloff(x, y, 5.0);
+
+  return total_starburst_radiance + radiance_falloff;
 
 //  for (int s = 0; s < num_samples; s++) {
 //    float u, v;
@@ -506,9 +505,7 @@ Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
 //  std::complex<float> avg_complex_intensity = complex_intensity / (float)num_samples;
 }
 
-
-
-Vector3D PathTracer::raytrace_starburst_experiment(size_t x, size_t y) {
+Vector3D PathTracer::calculate_irradiance_falloff(size_t x, size_t y, double radius) {
   Vector3D total_starburst_radiance = Vector3D();
   Vector2D origin = Vector2D(x, y);
   int sample;
@@ -516,16 +513,12 @@ Vector3D PathTracer::raytrace_starburst_experiment(size_t x, size_t y) {
 
   for (sample = 1; sample <= num_samples; sample++) {
     Vector2D sample_position = origin + gridSampler->get_sample(); // should return something between ([x, x+1], [y, y+1])
-    double normalized_x = sample_position.x / (double) sampleBuffer.w; // normalize coordinates
-    double normalized_y = sample_position.y / (double) sampleBuffer.h;
-
-    Vector2D normalized_coord = Vector2D(normalized_x, normalized_y);
 
     for (int l = 0; l < flare_origins.size(); l++) {
       Vector2D& fo = flare_origins[l];
       Vector2D fo_s = Vector2D(fo.x * (double)sampleBuffer.w, fo.y * (double) sampleBuffer.h);
-      double r = max(1.0, (fo_s - sample_position).norm());
-      double r2 = r*r;
+      double r = 1 + max(0.0, (fo_s - sample_position).norm() - radius);
+      double r2 = pow(r, 1.5);
 
       total_starburst_radiance += flare_radiance[l] / r2;
     }
