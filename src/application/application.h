@@ -91,7 +91,7 @@ struct AppConfig {
 
   // Begin Lens Flare implementation
   string aperture_filename;
-	string ghost_aperature_filename;
+	string ghost_aperture_filename;
 };
 
 class Application : public Renderer {

@@ -49,7 +49,7 @@ RaytracedRenderer::RaytracedRenderer(size_t ns_aa,
                        double lensRadius,
                        double focalDistance,
                        std::string aperture_filename,
-											 std::string ghost_aperature_filename) {
+											 std::string ghost_aperture_filename) {
   state = INIT;
 
   pt = new PathTracer();
@@ -300,7 +300,7 @@ void RaytracedRenderer::start_raytracing() {
   pt->find_sun_pos();
 	
 	// generate ghost_buffer
-	pt->gen_ghost_buffer();
+	pt->generate_ghost_buffer();
 	
 
   if (!render_cell) {

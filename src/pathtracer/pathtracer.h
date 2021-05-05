@@ -45,7 +45,7 @@ namespace CGL {
 				void find_sun_pos();
 			
 				
-				HDRImageBuffer& ghost_buffer;
+				HDRImageBuffer ghost_buffer;
 				void generate_ghost_buffer();
 			
 				void draw_ghost(string color, float r1, float r2);
@@ -121,8 +121,10 @@ namespace CGL {
 
         std::vector<Vector2D> flare_origins; ///< normalized screen space origins of flares
         std::vector<Vector3D> flare_radiance; ///< radiance of captured directional light sources
-			  std::vector<Vector3D> flare_angles;
-			  std::vector<Vector3D> flare_axis_rays;
+//			  std::vector<float> flare_angles;
+//			  std::vector<Vector2D> flare_axis_rays;
+				Vector2D axis_ray;
+				float angle_to_sun;
 
         // Tonemapping Controls //
 

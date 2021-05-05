@@ -21,7 +21,7 @@ PathTracer::PathTracer() {
   tm_wht = 5.0f;
 	
 	//initialize ghost_buffer
-	ghost_buffer = new HDRImageBuffer(sampleBuffer.w, sampleBuffer.h);
+	ghost_buffer = HDRImageBuffer();
 }
 
 PathTracer::~PathTracer() {
@@ -50,8 +50,8 @@ void PathTracer::find_sun_pos() {
 				float angle_to_sun = dot(cam_dirToLight, Vector3D(0, 0, 1)); // todo: z points out and positive?
 			  Vector2D axis_ray = Vector2D(ns_x, ns_y);
 				
-				flare_angles.push_back(angle_to_sun);
-				flare_axis_rays.push_back(axis_ray);
+				//flare_angles.push_back(angle_to_sun);
+				//flare_axis_rays.push_back(axis_ray);
       }
     }
   }
@@ -310,8 +310,8 @@ Vector3D PathTracer::est_radiance_global_illumination(const Ray &r) {
 // draw one ghost to ghost_buffer
 void PathTracer::draw_ghost(string color, float r1, float r2) {
 	
-	float sun_angle = flare_angles.back(); // change to support multiple suns
-	Vector2D axis_ray = flare_axis_rays.back();
+//	float sun_angle = flare_angles.back(); // change to support multiple suns
+//	Vector2D axis_ray = flare_axis_rays.back();
 	
 //	float shift_amt = -(r1+r2)/2;
 //	float scale_amt = abs(r2-r1);
@@ -355,6 +355,10 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
 }
 
 void PathTracer::generate_ghost_buffer() {
+	
+	// initialize size
+	
+	ghost_buffer.resize(sampleBuffer.w, sampleBuffer.h);
 	// get sun angle and axis ray
 	
 	
@@ -430,13 +434,14 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
   /*
    * Start of Lens Flare Starburst Experiment:
    */
-  Vector3D starburst_radiance = raytrace_starburst(x, y);
+  // Vector3D starburst_radiance = raytrace_starburst(x, y); // TODO: add back
+	//cout << ghost_buffer << "ghost_buffer";
 	Vector3D ghost_color = ghost_buffer.get_pixel_value(x, y); // TODO: representing at Vec3D for now...
 //  cout << "(x, y, radiance): (" << x << ", " << y << ", " << starburst_radiance << ")\n";
 //  Vector3D starburst_radiance = raytrace_starburst_experiment(x, y);
 //  cout << starburst_radiance << endl;
 //  cout << "total radiance: " << total_radiance << ", starburst: " << starburst_radiance << endl;
-  sampleBuffer.update_pixel(total_radiance + starburst_radiance + ghost_color, x, y);
+  sampleBuffer.update_pixel(total_radiance + ghost_color, x, y);
     
   //uncomment 4
   //sampleCountBuffer[x + y * sampleBuffer.w] = num_samples;
