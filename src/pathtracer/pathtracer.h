@@ -78,7 +78,7 @@ namespace CGL {
         /**
          * Trace the starburst given by the pixel coordinate.
          */
-        Vector3D raytrace_starburst_experiment(size_t x, size_t y);
+        Vector3D calculate_irradiance_falloff(size_t x, size_t y, double radiance);
         Vector3D raytrace_starburst(size_t x, size_t y);
 
         /**
