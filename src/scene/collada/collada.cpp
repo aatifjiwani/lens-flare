@@ -687,6 +687,11 @@ void ColladaParser::parse_polymesh(XMLElement* xml, PolymeshInfo& polymesh) {
 
   // polylist
   XMLElement* e_polylist = e_mesh->FirstChildElement("polylist");
+  bool is_triangles = false;
+  if (!e_polylist) {
+    e_polylist = e_mesh->FirstChildElement("triangles");
+    is_triangles = true;
+  }
   if (e_polylist) {
 
     // input arrays & array offsets
@@ -766,22 +771,26 @@ void ColladaParser::parse_polymesh(XMLElement* xml, PolymeshInfo& polymesh) {
 
     // create polygon size array and compute size of index array
     vector<size_t> sizes; size_t num_indices = 0;
-    XMLElement* e_vcount = e_polylist->FirstChildElement("vcount");
-    if (e_vcount) {
-
-      size_t size;
-      string s = e_vcount->GetText();
-      stringstream ss (s);
-
-      for (size_t i = 0; i < num_polygons; ++i) {
-        ss >> size;
-        sizes.push_back(size);
-        num_indices += size * stride;
+    if (!is_triangles) {
+      XMLElement* e_vcount = e_polylist->FirstChildElement("vcount");
+      if (e_vcount) {
+        size_t size;
+        string s = e_vcount->GetText();
+        stringstream ss(s);
+        for (size_t i = 0; i < num_polygons; ++i) {
+          ss >> size;
+          sizes.push_back(size);
+          num_indices += size * stride;
+        }
+      } else {
+        stat("Error: polygon sizes undefined in geometry: " << polymesh.id);
+        exit(EXIT_FAILURE);
       }
-
     } else {
-      stat("Error: polygon sizes undefined in geometry: " << polymesh.id);
-      exit(EXIT_FAILURE);
+      for (size_t i = 0; i < num_polygons; ++i) {
+        sizes.push_back(3);
+        num_indices += 3 * stride;
+      }
     }
 
     // index array
@@ -917,9 +926,13 @@ void ColladaParser::parse_material ( XMLElement* xml, MaterialInfo& material ) {
         e_bsdf = e_bsdf->NextSiblingElement();
       }
     } else if (tech_common) {
-      XMLElement* e_diffuse = get_element(tech_common, "phong/diffuse/color");
-      if (e_diffuse) {
-        Vector3D reflectance = spectrum_from_string(string(e_diffuse->GetText()));
+      XMLElement* e_phong_diffuse = get_element(tech_common, "phong/diffuse/color");
+      XMLElement* e_lambert_diffuse = get_element(tech_common, "lambert/diffuse/color");
+      if (e_lambert_diffuse) {
+        Vector3D reflectance = spectrum_from_string(string(e_lambert_diffuse->GetText()));
+        material.bsdf = new DiffuseBSDF(reflectance);
+      } else if (e_phong_diffuse) {
+        Vector3D reflectance = spectrum_from_string(string(e_phong_diffuse->GetText()));
         material.bsdf = new DiffuseBSDF(reflectance);
       } else {
         material.bsdf = new DiffuseBSDF(Vector3D(.5f,.5f,.5f));
