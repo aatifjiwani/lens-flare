@@ -224,6 +224,7 @@ void Camera::load_settings(string filename) {
   cout << "[Camera] Loaded settings from " << filename << endl;
 }
 
+// world coordinates to screen coordinates
 void Camera::analyze_world_coord(Vector3D& pos_world, double& ns_x, double& ns_y) {
   double hFOV_rads = this->hFov * (PI / 180.0); // x
   double vFOV_rads = this->vFov * (PI / 180.0); // y

@@ -65,6 +65,7 @@ struct AppConfig {
 
     // Begin Lens Flare implementation
     aperture_filename = "";
+		ghost_aperture_filename = "";
   }
 
   size_t pathtracer_ns_aa;
@@ -90,6 +91,7 @@ struct AppConfig {
 
   // Begin Lens Flare implementation
   string aperture_filename;
+	string ghost_aperature_filename;
 };
 
 class Application : public Renderer {

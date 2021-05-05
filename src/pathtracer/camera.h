@@ -18,7 +18,7 @@ namespace CGL {
 struct CameraApertureTexture {
     size_t width;
     size_t height;
-    std::vector<float> aperture;
+    std::vector<float> aperture; // values of pixels
     double total_value;
 
     // Bounding Box
@@ -172,7 +172,12 @@ class Camera {
   double focalDistance;
   CameraApertureTexture* aperture_texture;
 //  CameraLensStructure* ...
-
+	CameraApertureTexture* ghost_aperture_texture;
+	
+	// camera-to-world rotation matrix (note: also need to translate a
+ // camera-space point by 'pos' to perform a full camera-to-world
+ // transform)
+ 	Matrix3x3 c2w;
  private:
   // Computes pos, screenXDir, screenYDir from target, r, phi, theta.
   void compute_position();
@@ -185,11 +190,6 @@ class Camera {
 
   // Orientation relative to target, and min & max distance from the target.
   double phi, theta, r, minR, maxR;
-
-  // camera-to-world rotation matrix (note: also need to translate a
-  // camera-space point by 'pos' to perform a full camera-to-world
-  // transform)
-  Matrix3x3 c2w;
 
   // Info about screen to render to; it corresponds to the camera's full field
   // of view at some distance.

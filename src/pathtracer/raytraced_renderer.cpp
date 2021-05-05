@@ -48,7 +48,8 @@ RaytracedRenderer::RaytracedRenderer(size_t ns_aa,
                        string filename,
                        double lensRadius,
                        double focalDistance,
-                       std::string aperture_filename) {
+                       std::string aperture_filename,
+											 std::string ghost_aperature_filename) {
   state = INIT;
 
   pt = new PathTracer();
@@ -66,6 +67,7 @@ RaytracedRenderer::RaytracedRenderer(size_t ns_aa,
   this->lensRadius = lensRadius;
   this->focalDistance = focalDistance;
   this->aperture_filename = aperture_filename;
+	this->ghost_aperture_filename = ghost_aperture_filename;
 
   this->filename = filename;
 
@@ -147,8 +149,12 @@ void RaytracedRenderer::set_camera(Camera *camera) {
   // Begin Lens Flare Implementation
   CameraApertureTexture* apertureTexture = new CameraApertureTexture();
   apertureTexture->init(this->aperture_filename);
+	
+	CameraApertureTexture* ghostApertureTexture = new CameraApertureTexture();
+	ghostApertureTexture->init(this->ghost_aperture_filename);
 
   this->camera->aperture_texture = apertureTexture;
+	this->camera->ghost_aperture_texture = ghostApertureTexture;
 
   if (has_valid_configuration()) {
     state = READY;
@@ -292,6 +298,10 @@ void RaytracedRenderer::start_raytracing() {
   pt->camera = camera;
   pt->scene = scene;
   pt->find_sun_pos();
+	
+	// generate ghost_buffer
+	pt->gen_ghost_buffer();
+	
 
   if (!render_cell) {
     frameBuffer.clear();

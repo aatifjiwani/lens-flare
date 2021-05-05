@@ -42,7 +42,13 @@ namespace CGL {
         /**
          * Testing functions
          */
-         void find_sun_pos();
+				void find_sun_pos();
+			
+				
+				HDRImageBuffer& ghost_buffer;
+				void generate_ghost_buffer();
+			
+				void draw_ghost(string color, float r1, float r2);
 
         /**
          * If the pathtracer is in READY, delete all internal data, transition to INIT.
@@ -115,6 +121,8 @@ namespace CGL {
 
         std::vector<Vector2D> flare_origins; ///< normalized screen space origins of flares
         std::vector<Vector3D> flare_radiance; ///< radiance of captured directional light sources
+			  std::vector<Vector3D> flare_angles;
+			  std::vector<Vector3D> flare_axis_rays;
 
         // Tonemapping Controls //
 

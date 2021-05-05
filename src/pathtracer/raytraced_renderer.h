@@ -75,7 +75,8 @@ public:
              string filename = "",
              double lensRadius = 0.25,
              double focalDistance = 4.7,
-             std::string aperture_filename = "");
+             std::string aperture_filename = "",
+						 std::string ghost_aperture_filename = "");
 
   /**
    * Destructor.
@@ -219,6 +220,7 @@ public:
   double lensRadius;
   double focalDistance;
   std::string aperture_filename;
+	std::string ghost_aperture_filename;
 
   // Components //
 

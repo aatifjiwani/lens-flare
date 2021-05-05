@@ -19,6 +19,9 @@ PathTracer::PathTracer() {
   tm_level = 1.0f;
   tm_key = 0.18;
   tm_wht = 5.0f;
+	
+	//initialize ghost_buffer
+	ghost_buffer = new HDRImageBuffer(sampleBuffer.w, sampleBuffer.h);
 }
 
 PathTracer::~PathTracer() {
@@ -38,6 +41,17 @@ void PathTracer::find_sun_pos() {
       if ((ns_x >= 0 && ns_x <= 1) && (ns_y >= 0 && ns_y <=1)) {
         flare_origins.emplace_back(ns_x, ns_y);
         flare_radiance.push_back(dlight->radiance);
+				
+				// TODO: should this be a list?
+				// instantiate: angle_to_sun
+				Matrix3x3 w2c = camera->c2w.inv();
+				Vector3D cam_dirToLight = w2c*dlight->dirToLight; // towards sun
+				cam_dirToLight.normalize();
+				float angle_to_sun = dot(cam_dirToLight, Vector3D(0, 0, 1)); // todo: z points out and positive?
+			  Vector2D axis_ray = Vector2D(ns_x, ns_y);
+				
+				flare_angles.push_back(angle_to_sun);
+				flare_axis_rays.push_back(axis_ray);
       }
     }
   }
@@ -293,7 +307,69 @@ Vector3D PathTracer::est_radiance_global_illumination(const Ray &r) {
   return L_out;
 }
 
+// draw one ghost to ghost_buffer
+void PathTracer::draw_ghost(string color, float r1, float r2) {
+	
+	float sun_angle = flare_angles.back(); // change to support multiple suns
+	Vector2D axis_ray = flare_axis_rays.back();
+	
+//	float shift_amt = -(r1+r2)/2;
+//	float scale_amt = abs(r2-r1);
+//
+//	//define 4 points
+//	Vector3D p1 = Vector3D(-1, -1, 1);
+	
+	
+	// run shift_vertex on points
+	
+	
+	// rasturize 2 textured triangles to ghost_buffer
+	//ghost_aperture_function->sample_aperture(u, v);
+	//camera->ghost_texture?
+	// todo: proj 1 code
+	
+	
+	
+	
+	
+	//tests
+	
+	// test 1: draw line on axis
+	// test: make sure it's additive
+	// TODO: get actual color from aperature texture.
+	// test: one ghost w/ weird aperature
+	
+	// test: figure out scaling
+	Vector3D test = Vector3D(1, 1, 1);
+	
+
+	for(int i = int(ghost_buffer.w/2); i<ghost_buffer.w; i++) {
+		for(int j = int(ghost_buffer.h/2); j< ghost_buffer.h; j++) {
+			ghost_buffer.update_pixel_additive(test, i, j);
+		}
+	}
+	
+	
+	
+	
+}
+
+void PathTracer::generate_ghost_buffer() {
+	// get sun angle and axis ray
+	
+	
+
+	
+	// run every ghost func on each wavelength
+	// additively store stuff in ghost buffer
+	
+	//test
+	draw_ghost("red", -5, 5);
+	
+}
+
 void PathTracer::raytrace_pixel(size_t x, size_t y) {
+	
   // TODO (Part 1.2):
   // Make a loop that generates num_samples camera rays and traces them
   // through the scene. Return the average Vector3D.
@@ -355,11 +431,12 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
    * Start of Lens Flare Starburst Experiment:
    */
   Vector3D starburst_radiance = raytrace_starburst(x, y);
+	Vector3D ghost_color = ghost_buffer.get_pixel_value(x, y); // TODO: representing at Vec3D for now...
 //  cout << "(x, y, radiance): (" << x << ", " << y << ", " << starburst_radiance << ")\n";
 //  Vector3D starburst_radiance = raytrace_starburst_experiment(x, y);
 //  cout << starburst_radiance << endl;
 //  cout << "total radiance: " << total_radiance << ", starburst: " << starburst_radiance << endl;
-  sampleBuffer.update_pixel(total_radiance + starburst_radiance, x, y);
+  sampleBuffer.update_pixel(total_radiance + starburst_radiance + ghost_color, x, y);
     
   //uncomment 4
   //sampleCountBuffer[x + y * sampleBuffer.w] = num_samples;
