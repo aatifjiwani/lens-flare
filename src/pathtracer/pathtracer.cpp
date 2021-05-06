@@ -435,7 +435,7 @@ Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
   }
 
   double abs_avg_complex_intensity = abs(complex_intensity) / aperture_function->total_value;
-  double radius = 30.0;
+  double radius = flare_radius;
   // Flare Suppression
   if ((flare_origin - curr_screen_pose).norm() > ((double) aperture_function->width / 2.0)) {
     double norm_coord = (flare_origin - curr_screen_pose).norm();
@@ -452,8 +452,12 @@ Vector3D PathTracer::raytrace_starburst(size_t x, size_t y) {
     abs_avg_complex_intensity = pow(abs_avg_complex_intensity, factor);
   }
 
+  double intensity = -flare_intensity + 3.0;
+  if (intensity <= 0) {
+    intensity = 2.0;
+  }
   for (auto & l : flare_radiance) {
-    total_starburst_radiance += pow(abs_avg_complex_intensity, 2.0) * l;
+    total_starburst_radiance += pow(abs_avg_complex_intensity, intensity) * l;
   }
 
   Vector3D radiance_falloff = calculate_irradiance_falloff(x, y, 5.0);
