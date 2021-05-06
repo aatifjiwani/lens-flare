@@ -47,7 +47,7 @@ void PathTracer::find_sun_pos() {
 				Matrix3x3 w2c = camera->c2w.inv();
 				Vector3D cam_dirToLight = w2c*dlight->dirToLight; // towards sun
 				cam_dirToLight.normalize();
-				angle_to_sun = atan(ns_y/ns_x);
+				angle_to_sun = atan(ns_y/ns_x); //atan((axis_ray.y-0.5) / (axis_ray.x-0.5)) is bad
 				//acos(dot(cam_dirToLight, Vector3D(0, 0, -1))); // todo: z points out and positive?
 				cout << ns_x << ns_y << "test";
 			  axis_ray = Vector2D(ns_x, ns_y);
