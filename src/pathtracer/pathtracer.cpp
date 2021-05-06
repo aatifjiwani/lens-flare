@@ -334,9 +334,9 @@ void PathTracer::fill_textured_pixel(float x0, float y0, float u0, float v0, flo
 		CameraApertureTexture* ghost_ap_tex = camera->ghost_aperture_texture;
 		std::vector<float>* ghost_aperture_pixels = &ghost_ap_tex->aperture;
 		
-		float sample = (*ghost_aperture_pixels)[int(floor(uv.y*ghost_ap_tex->width) + uv.x)]; //grayscale
+		float sample = (*ghost_aperture_pixels)[int(floor(uv.y)*ghost_ap_tex->width + uv.x)]; //grayscale
 		
-		ghost_buffer.update_pixel_additive(Vector3D(sample), x, ghost_buffer.h-y);
+		ghost_buffer.update_pixel_additive(Vector3D(sample), x, y);
 	}
 	
 }
@@ -400,7 +400,7 @@ void PathTracer::rasterize_textured_triangle(float x0, float y0, float u0, float
 
 	for (int y = min_y; y < max_y; y++) {
 		for (int x = min_x; x < max_x; x++) {
-			fill_textured_pixel(x0, y0, u0, v0, x1, y1, u1, v1, x2, y2, u2, v2, x, ghost_buffer.h-y);
+			fill_textured_pixel(x0, y0, u0, v0, x1, y1, u1, v1, x2, y2, u2, v2, x, y);
 		}
 	}
 
@@ -457,7 +457,7 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
 	
 	rasterize_textured_triangle(gb_mid_w-100, gb_mid_h+100, 0, 0, gb_mid_w-100, gb_mid_h-100, 0, camera->ghost_aperture_texture->height, gb_mid_w+100, gb_mid_h+100, camera->ghost_aperture_texture->width, 0);
 	
-//	rasterize_textured_triangle(gb_mid_w-100, gb_mid_h+100, 0, 0, gb_mid_w-100, gb_mid_h-100, 0, camera->ghost_aperture_texture->height, gb_mid_w+100, gb_mid_h+100, camera->ghost_aperture_texture->width, 0);
+	rasterize_textured_triangle(gb_mid_w+100, gb_mid_h-100, camera->ghost_aperture_texture->width, camera->ghost_aperture_texture->height, gb_mid_w-100, gb_mid_h-100, 0, camera->ghost_aperture_texture->height, gb_mid_w+100, gb_mid_h+100, camera->ghost_aperture_texture->width, 0);
 	
 }
 
