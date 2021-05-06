@@ -452,6 +452,7 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
 	
 	// given r1, r2, and color, draw ghost
 	
+	// Hi Ritwik!
 	float shift_amt = -(r1+r2)/2 * 0.4;
 	float scale_amt = abs(r2-r1) * 0.05;
 	
@@ -485,6 +486,7 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
 		ghost_color = Vector3D(0, 0, 1);
 	}
 	
+	// Hi Ritwik!
 	float intensity_scalar = 10;
 	float size_scalar = 1/(scale_amt*scale_amt);
 	ghost_color *= intensity_scalar * size_scalar;
