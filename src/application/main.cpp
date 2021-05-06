@@ -215,6 +215,17 @@ Vector2D trace_ray_auto(float r, float theta, int i, int j, std::vector<Matrix3x
     return Vector2D(res.x, res.y);
 }
 
+void trace_all_rays_auto() {
+    // for all i->j from 0->4 (inclusive) all pairs
+    for (int i = 0; i < 5; i++) {
+        for (int j = i+1; j < 5; j++) {
+            trace_ray_auto(1, 0.01, i, j, R_red);
+            trace_ray_auto(1, 0.01, i, j, R_green);
+            trace_ray_auto(1, 0.01, i, j, R_blue);
+        }
+    }
+}
+
 
 // end integration
 
