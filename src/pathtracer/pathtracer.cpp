@@ -47,7 +47,7 @@ void PathTracer::find_sun_pos() {
 				Matrix3x3 w2c = camera->c2w.inv();
 				Vector3D cam_dirToLight = w2c*dlight->dirToLight; // towards sun
 				cam_dirToLight.normalize();
-				angle_to_sun = dot(cam_dirToLight, Vector3D(0, 0, 1)); // todo: z points out and positive?
+				angle_to_sun = acos(dot(cam_dirToLight, Vector3D(0, 0, -1))); // todo: z points out and positive?
 				cout << ns_x << ns_y << "test";
 			  axis_ray = Vector2D(ns_x, ns_y);
 				
@@ -327,7 +327,7 @@ void PathTracer::fill_textured_pixel(float x0, float y0, float u0, float v0, flo
 		float v = v2*alpha + v0*beta + v1*gamma;
 		Vector2D uv = Vector2D(u, v);
 		
-		cout << "x: " << x << "y: " << y << "u: " << u << "v: " << v << endl;
+//		cout << "x: " << x << "y: " << y << "u: " << u << "v: " << v << endl;
 	
 		
 		//TODO: init before?
@@ -410,7 +410,7 @@ void PathTracer::rasterize_textured_triangle(float x0, float y0, float u0, float
 
 Vector2D PathTracer::shift_vertex(float x, float y, float scale, float shift_amount) {
 	Vector3D v = Vector3D(x, y, 1);
-	float new_angle_to_sun = -angle_to_sun;
+	float new_angle_to_sun = angle_to_sun; //atan(axis_ray.y / axis_ray.x);
 	Matrix3x3 scaling = Matrix3x3(scale, 0, 0,
 																0, scale, 0,
 																0, 0, 1);
@@ -437,7 +437,10 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
 	float i = ghost_buffer.w/2;
 	float j = ghost_buffer.h/2;
 	
-	cout << axis_ray << "axis_ray";
+	cout << axis_ray << "axis_ray" << endl;
+	cout << angle_to_sun << "angle" << endl;
+	cout << atan(axis_ray.y / axis_ray.x) << "atan" << endl;
+	cout << acos(angle_to_sun) << "acos" << endl;
 	
 	while(i<ghost_buffer.w and j < ghost_buffer.h){
 		ghost_buffer.update_pixel_additive(test, int(i), int(j));
@@ -454,13 +457,13 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
 	float shift_amt = -(r1+r2)/2;
 	float scale_amt = abs(r2-r1);
 	
-	shift_amt = 200;
+	shift_amt = -50;
 	scale_amt = 20;
 	
-	float gb_mid_w = ghost_buffer.w/2;
-	float ga_mid_w = camera->ghost_aperture_texture->width/2;
-	float gb_mid_h = ghost_buffer.h/2;
-	float ga_mid_h = camera->ghost_aperture_texture->height/2;
+//	float gb_mid_w = flare_origins[0].x / 2.0; ghost_buffer.w/2;
+//	float gb_mid_h = flare_origins[0].y / 2;
+  double gb_mid_w = (double) (ceil(axis_ray.x * (double)ghost_buffer.w));
+  double gb_mid_h = (double) (ceil(axis_ray.y * (double)ghost_buffer.h));
 	
 	//define 4 points in screenspace
 //	Vector2D ul = shift_vertex(gb_mid_w-100, gb_mid_h+100, scale_amt, shift_amt);
@@ -468,10 +471,10 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
 //	Vector2D ur = shift_vertex(gb_mid_w+100, gb_mid_h+100, scale_amt, shift_amt);
 //	Vector2D lr = shift_vertex(gb_mid_w+100, gb_mid_h-100, scale_amt, shift_amt);
 	
-		Vector2D ul = shift_vertex(-1, 1, scale_amt, shift_amt);
-		Vector2D ll = shift_vertex(-1, -1, scale_amt, shift_amt);
-		Vector2D ur = shift_vertex(1, 1, scale_amt, shift_amt);
-		Vector2D lr = shift_vertex(1, -1, scale_amt, shift_amt);
+  Vector2D ul = shift_vertex(-1, 1, scale_amt, shift_amt);
+  Vector2D ll = shift_vertex(-1, -1, scale_amt, shift_amt);
+  Vector2D ur = shift_vertex(1, 1, scale_amt, shift_amt);
+  Vector2D lr = shift_vertex(1, -1, scale_amt, shift_amt);
 	
 	// TODO: add sun point instead of midpoint
 	rasterize_textured_triangle(gb_mid_w+ul.x, gb_mid_h+ul.y, 0, 0, gb_mid_w+ll.x, gb_mid_h+ll.y, 0, camera->ghost_aperture_texture->height, gb_mid_w+ur.x, gb_mid_h+ur.y, camera->ghost_aperture_texture->width, 0);
@@ -717,15 +720,17 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
   /*
    * Start of Lens Flare Starburst Experiment:
    */
-  //Vector3D starburst_radiance = raytrace_starburst(x, y); // TODO: add back
+//  Vector3D starburst_radiance = raytrace_starburst(x, y); // TODO: add back
 	//cout << ghost_buffer << "ghost_buffer";
 	Vector3D ghost_color = ghost_buffer.get_pixel_value(x, y); // TODO: representing at Vec3D for now...
 //  cout << "(x, y, radiance): (" << x << ", " << y << ", " << starburst_radiance << ")\n";
 //  Vector3D starburst_radiance = raytrace_starburst_experiment(x, y);
 //  cout << starburst_radiance << endl;
 //  cout << "total radiance: " << total_radiance << ", starburst: " << starburst_radiance << endl;
-  sampleBuffer.update_pixel(total_radiance + ghost_color, x, y);
-    
+    sampleBuffer.update_pixel(total_radiance + ghost_color, x, y);
+
+
+
   //uncomment 4
   //sampleCountBuffer[x + y * sampleBuffer.w] = num_samples;
   //sampleCountBuffer[x + y * sampleBuffer.w] = sample;
