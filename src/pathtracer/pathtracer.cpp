@@ -410,8 +410,18 @@ void PathTracer::rasterize_textured_triangle(float x0, float y0, float u0, float
 
 Vector2D PathTracer::shift_vertex(float x, float y, float scale, float shift_amount) {
 	Vector3D v = Vector3D(x, y, 1);
-	Matrix3x3 matrix = Matrix3x3(scale*cos(angle_to_sun), -scale*sin(angle_to_sun), shift_amount*cos(angle_to_sun), scale*sin(angle_to_sun), scale*cos(angle_to_sun), shift_amount*cos(angle_to_sun), 0, 0, 1);
-	Vector3D result = matrix*v;
+	float new_angle_to_sun = -angle_to_sun;
+	Matrix3x3 scaling = Matrix3x3(scale, 0, 0,
+																0, scale, 0,
+																0, 0, 1);
+	Matrix3x3 rotation = Matrix3x3(cos(new_angle_to_sun), -sin(new_angle_to_sun), 0,
+																 sin(new_angle_to_sun), cos(new_angle_to_sun), 0,
+																 0, 0, 1);
+	
+	Matrix3x3 shift = Matrix3x3(1, 0, shift_amount*cos(new_angle_to_sun),
+															0, 1, shift_amount*sin(new_angle_to_sun),
+															0, 0, 1);
+	Vector3D result = shift*rotation*scaling*v;
 																	
 	return Vector2D(result.x, result.y);
 																	 
@@ -444,20 +454,37 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
 	float shift_amt = -(r1+r2)/2;
 	float scale_amt = abs(r2-r1);
 	
+	shift_amt = 200;
+	scale_amt = 20;
+	
 	float gb_mid_w = ghost_buffer.w/2;
 	float ga_mid_w = camera->ghost_aperture_texture->width/2;
 	float gb_mid_h = ghost_buffer.h/2;
 	float ga_mid_h = camera->ghost_aperture_texture->height/2;
 	
 	//define 4 points in screenspace
-//	Vector2D ul = shift_vertex(gb_mid_w-100, gb_mid_h-100, scale_amt, shift_amt);
-//	Vector2D ll = shift_vertex(gb_mid_w-100, gb_mid_h+100, scale_amt, shift_amt);
-//	Vector2D ur = shift_vertex(gb_mid_w+100, gb_mid_h-100, scale_amt, shift_amt);
-//	Vector2D lr = shift_vertex(gb_mid_w+100, gb_mid_h+100, scale_amt, shift_amt);
+//	Vector2D ul = shift_vertex(gb_mid_w-100, gb_mid_h+100, scale_amt, shift_amt);
+//	Vector2D ll = shift_vertex(gb_mid_w-100, gb_mid_h-100, scale_amt, shift_amt);
+//	Vector2D ur = shift_vertex(gb_mid_w+100, gb_mid_h+100, scale_amt, shift_amt);
+//	Vector2D lr = shift_vertex(gb_mid_w+100, gb_mid_h-100, scale_amt, shift_amt);
 	
-	rasterize_textured_triangle(gb_mid_w-100, gb_mid_h+100, 0, 0, gb_mid_w-100, gb_mid_h-100, 0, camera->ghost_aperture_texture->height, gb_mid_w+100, gb_mid_h+100, camera->ghost_aperture_texture->width, 0);
+		Vector2D ul = shift_vertex(-1, 1, scale_amt, shift_amt);
+		Vector2D ll = shift_vertex(-1, -1, scale_amt, shift_amt);
+		Vector2D ur = shift_vertex(1, 1, scale_amt, shift_amt);
+		Vector2D lr = shift_vertex(1, -1, scale_amt, shift_amt);
 	
-	rasterize_textured_triangle(gb_mid_w+100, gb_mid_h-100, camera->ghost_aperture_texture->width, camera->ghost_aperture_texture->height, gb_mid_w-100, gb_mid_h-100, 0, camera->ghost_aperture_texture->height, gb_mid_w+100, gb_mid_h+100, camera->ghost_aperture_texture->width, 0);
+	// TODO: add sun point instead of midpoint
+	rasterize_textured_triangle(gb_mid_w+ul.x, gb_mid_h+ul.y, 0, 0, gb_mid_w+ll.x, gb_mid_h+ll.y, 0, camera->ghost_aperture_texture->height, gb_mid_w+ur.x, gb_mid_h+ur.y, camera->ghost_aperture_texture->width, 0);
+	
+	rasterize_textured_triangle(gb_mid_w+lr.x, gb_mid_h+lr.y, 0, 0, gb_mid_w+ll.x, gb_mid_h+ll.y, 0, camera->ghost_aperture_texture->height, gb_mid_w+ur.x, gb_mid_h+ur.y, camera->ghost_aperture_texture->width, 0);
+	
+//	rasterize_textured_triangle(gb_mid_w+100, gb_mid_h-100, camera->ghost_aperture_texture->width, camera->ghost_aperture_texture->height, gb_mid_w-100, gb_mid_h-100, 0, camera->ghost_aperture_texture->height, gb_mid_w+100, gb_mid_h+100, camera->ghost_aperture_texture->width, 0);
+	
+	
+	// aperature at center
+//	rasterize_textured_triangle(gb_mid_w-100, gb_mid_h+100, 0, 0, gb_mid_w-100, gb_mid_h-100, 0, camera->ghost_aperture_texture->height, gb_mid_w+100, gb_mid_h+100, camera->ghost_aperture_texture->width, 0);
+//
+//	rasterize_textured_triangle(gb_mid_w+100, gb_mid_h-100, camera->ghost_aperture_texture->width, camera->ghost_aperture_texture->height, gb_mid_w-100, gb_mid_h-100, 0, camera->ghost_aperture_texture->height, gb_mid_w+100, gb_mid_h+100, camera->ghost_aperture_texture->width, 0);
 	
 }
 
