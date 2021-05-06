@@ -616,13 +616,13 @@ Vector2D trace_ray_auto_before(float r, float theta, int i, int j, std::vector<M
 				if (k == 5) {
 						Vector3D after_ap = M * ray;
 						if (after_ap.x > 11.6 || after_ap.x < -11.6) {
-								cout << "recasting, got aperature status: " << after_ap.x << endl;
+								// cout << "recasting, got aperature status: " << after_ap.x << endl;
 								float r_a = 11.6;
 								if (r < 0)
 										r_a = -11.5;
 								float r_e = (r_a - M(0, 1) * theta) / M(0, 0);
 								ray = Vector3D(r_e, theta, 0);
-								cout << "ray we're casting: " << ray << endl;
+								// cout << "ray we're casting: " << ray << endl;
 						}
 						// crossing the aperture
 						M = Ts[k] * M;
@@ -651,13 +651,13 @@ Vector2D trace_ray_auto_after(float r, float theta, int i, int j, std::vector<Ma
         if (k == 5) {
             Vector3D after_ap = M * ray;
             if (after_ap.x > 11.6 || after_ap.x < -11.6) {
-                cout << "recasting, got aperature status: " << after_ap.x << endl;
+                // cout << "recasting, got aperature status: " << after_ap.x << endl;
                 float r_a = 11.6;
                 if (r < 0)
                     r_a = -11.5;
                 float r_e = (r_a - M(0, 1) * theta) / M(0, 0);
                 ray = Vector3D(r_e, theta, 0);
-                cout << "ray we're casting: " << ray << endl;
+                // cout << "ray we're casting: " << ray << endl;
             }
             // crossing the aperture
             M = Ts[k] * M;
@@ -754,6 +754,7 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
   Vector3D total_radiance = Vector3D();
 
   // BEGIN UNCOMMENT
+  /*
   float s1 = 0.0;
   float s2 = 0.0;
   int sample = 1;
@@ -793,19 +794,24 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
   // uncomment 3
   //total_radiance /= (double) num_samples;
   total_radiance /= (double) sample;
+   */
 // END UNCOMMENT
 
   /*
    * Start of Lens Flare Starburst Experiment:
    */
-  Vector3D starburst_radiance = raytrace_starburst(x, y); // TODO: add back
+    // COMMENT 803/804 starburst_radiance and the update pixel!!!!
+    
+  // Vector3D starburst_radiance = raytrace_starburst(x, y); // TODO: add back
 	//cout << ghost_buffer << "ghost_buffer";
 	Vector3D ghost_color = ghost_buffer.get_pixel_value(x, y); // TODO: representing at Vec3D for now...
 //  cout << "(x, y, radiance): (" << x << ", " << y << ", " << starburst_radiance << ")\n";
 //  Vector3D starburst_radiance = raytrace_starburst_experiment(x, y);
 //  cout << starburst_radiance << endl;
 //  cout << "total radiance: " << total_radiance << ", starburst: " << starburst_radiance << endl;
-    sampleBuffer.update_pixel(total_radiance + ghost_color + starburst_radiance, x, y);
+    
+    // sampleBuffer.update_pixel(total_radiance + ghost_color + starburst_radiance, x, y);
+    sampleBuffer.update_pixel(total_radiance + ghost_color, x, y);
 
 
 
