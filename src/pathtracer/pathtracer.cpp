@@ -430,10 +430,6 @@ Vector2D PathTracer::shift_vertex(float x, float y, float scale, float shift_amo
 // draw one ghost to ghost_buffer
 void PathTracer::draw_ghost(string color, float r1, float r2) {
 	
-	
-	// test: axis ray
-	Vector3D test = Vector3D(1, 1, 1);
-	
 	float i = ghost_buffer.w/2;
 	float j = ghost_buffer.h/2;
 	
@@ -455,7 +451,7 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
 	// given r1, r2, and color, draw ghost
 	
 	float shift_amt = -(r1+r2)/2 * 0.5;
-	float scale_amt = abs(r2-r1)*0.05;
+	float scale_amt = abs(r2-r1) * 0.05;
 	
 //	shift_amt = -50;
 //	scale_amt = 20;
@@ -487,8 +483,9 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
 		ghost_color = Vector3D(0, 0, 1);
 	}
 	
-	float intensity_scalar = 0.8;
-	ghost_color *= intensity_scalar;
+	float intensity_scalar = 10;
+	float size_scalar = 1/(scale_amt*scale_amt);
+	ghost_color *= intensity_scalar * size_scalar;
 	
 	rasterize_textured_triangle(gb_mid_w+ul.x, gb_mid_h+ul.y, 0, 0, gb_mid_w+ll.x, gb_mid_h+ll.y, 0, camera->ghost_aperture_texture->height, gb_mid_w+ur.x, gb_mid_h+ur.y, camera->ghost_aperture_texture->width, 0, ghost_color);
 	
@@ -736,14 +733,14 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
   /*
    * Start of Lens Flare Starburst Experiment:
    */
-  Vector3D starburst_radiance = raytrace_starburst(x, y); // TODO: add back
+  //Vector3D starburst_radiance = raytrace_starburst(x, y); // TODO: add back
 	//cout << ghost_buffer << "ghost_buffer";
 	Vector3D ghost_color = ghost_buffer.get_pixel_value(x, y); // TODO: representing at Vec3D for now...
 //  cout << "(x, y, radiance): (" << x << ", " << y << ", " << starburst_radiance << ")\n";
 //  Vector3D starburst_radiance = raytrace_starburst_experiment(x, y);
 //  cout << starburst_radiance << endl;
 //  cout << "total radiance: " << total_radiance << ", starburst: " << starburst_radiance << endl;
-    sampleBuffer.update_pixel(total_radiance + ghost_color + starburst_radiance, x, y);
+    sampleBuffer.update_pixel(total_radiance + ghost_color, x, y);
 
 
 

@@ -50,8 +50,9 @@ RaytracedRenderer::RaytracedRenderer(size_t ns_aa,
                        double focalDistance,
                        std::string aperture_filename,
                        double flare_radius,
-                       double flare_intensity) {
+                       double flare_intensity,
 											 std::string ghost_aperture_filename) {
+	
   state = INIT;
 
   pt = new PathTracer();
