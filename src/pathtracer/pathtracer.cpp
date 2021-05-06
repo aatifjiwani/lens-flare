@@ -411,8 +411,8 @@ void PathTracer::rasterize_textured_triangle(float x0, float y0, float u0, float
 
 Vector2D PathTracer::shift_vertex(float x, float y, float scale, float shift_amount) {
 	Vector3D v = Vector3D(x, y, 1);
-	float new_angle_to_sun = angle_to_sun;
-	//atan(axis_ray.y / axis_ray.x);
+	float new_angle_to_sun = atan((axis_ray.y-0.5) / (axis_ray.x-0.5));
+	
 	Matrix3x3 scaling = Matrix3x3(scale, 0, 0,
 																0, scale, 0,
 																0, 0, 1);
