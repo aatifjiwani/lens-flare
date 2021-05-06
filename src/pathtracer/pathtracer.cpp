@@ -410,7 +410,7 @@ void PathTracer::rasterize_textured_triangle(float x0, float y0, float u0, float
 
 Vector2D PathTracer::shift_vertex(float x, float y, float scale, float shift_amount) {
 	Vector3D v = Vector3D(x, y, 1);
-	float new_angle_to_sun = angle_to_sun; //atan(axis_ray.y / axis_ray.x);
+	float new_angle_to_sun = M_PI / 4; //angle_to_sun; //atan(axis_ray.y / axis_ray.x);
 	Matrix3x3 scaling = Matrix3x3(scale, 0, 0,
 																0, scale, 0,
 																0, 0, 1);
@@ -689,45 +689,45 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
   Vector3D total_radiance = Vector3D();
 
   // BEGIN UNCOMMENT
-//  float s1 = 0.0;
-//  float s2 = 0.0;
-//  int sample = 1;
-//
-//  for (sample = 1; sample <= num_samples; sample++) {
-//      // adaptive sampling
-//
-//      Vector2D sample_position = origin + gridSampler->get_sample(); // should return something between ([x, x+1], [y, y+1])
-//      double normalized_x = sample_position.x / (double) sampleBuffer.w; // normalize coordinates
-//      double normalized_y = sample_position.y / (double) sampleBuffer.h;
-//
-//      Ray to_trace = camera->generate_ray(normalized_x, normalized_y);
-//      to_trace.depth = max_ray_depth;
-//      Vector3D sample_radiance = est_radiance_global_illumination(to_trace);
-//
-//      float illum = sample_radiance.illum();
-//      s1 += illum;
-//      s2 += illum * illum;
-//
-//      // uncomment 1
-//      total_radiance += sample_radiance;
-//      //total_radiance += est_radiance_global_illumination(to_trace);
-//
-//      // uncomment 2
-//      // check only every samplesPerBatch
-//      if (sample > 1 && sample % samplesPerBatch == 0) {
-//          float std = std::sqrt(1.0 / (sample - 1) * (s2 - s1*s1 / sample));
-//          float confidence_interval = 1.96 * std / std::sqrt(sample);
-//          if (confidence_interval <= maxTolerance * s1 / sample) {
-//              break;
-//          }
-//      }
-//
-//  }
-//
-//
-//  // uncomment 3
-//  //total_radiance /= (double) num_samples;
-//  total_radiance /= (double) sample;
+  float s1 = 0.0;
+  float s2 = 0.0;
+  int sample = 1;
+
+  for (sample = 1; sample <= num_samples; sample++) {
+      // adaptive sampling
+
+      Vector2D sample_position = origin + gridSampler->get_sample(); // should return something between ([x, x+1], [y, y+1])
+      double normalized_x = sample_position.x / (double) sampleBuffer.w; // normalize coordinates
+      double normalized_y = sample_position.y / (double) sampleBuffer.h;
+
+      Ray to_trace = camera->generate_ray(normalized_x, normalized_y);
+      to_trace.depth = max_ray_depth;
+      Vector3D sample_radiance = est_radiance_global_illumination(to_trace);
+
+      float illum = sample_radiance.illum();
+      s1 += illum;
+      s2 += illum * illum;
+
+      // uncomment 1
+      total_radiance += sample_radiance;
+      //total_radiance += est_radiance_global_illumination(to_trace);
+
+      // uncomment 2
+      // check only every samplesPerBatch
+      if (sample > 1 && sample % samplesPerBatch == 0) {
+          float std = std::sqrt(1.0 / (sample - 1) * (s2 - s1*s1 / sample));
+          float confidence_interval = 1.96 * std / std::sqrt(sample);
+          if (confidence_interval <= maxTolerance * s1 / sample) {
+              break;
+          }
+      }
+
+  }
+
+
+  // uncomment 3
+  //total_radiance /= (double) num_samples;
+  total_radiance /= (double) sample;
 // END UNCOMMENT
 
   /*
