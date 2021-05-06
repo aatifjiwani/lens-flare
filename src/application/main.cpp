@@ -161,7 +161,7 @@ std::vector<Matrix3x3> R_red = create_Rs_for_color(red_refr);
 std::vector<Matrix3x3> R_blue = create_Rs_for_color(blue_refr);
 std::vector<Matrix3x3> R_green = create_Rs_for_color(green_refr);
 
-Vector2D trace_ray_auto(float r, float theta, int i, int j, std::vector<Matrix3x3> color_R) {
+Vector2D trace_ray_auto_before(float r, float theta, int i, int j, std::vector<Matrix3x3> color_R) {
     // mapping to 3D
     Vector3D ray = Vector3D(r, theta, 0);
     
@@ -181,7 +181,7 @@ Vector2D trace_ray_auto(float r, float theta, int i, int j, std::vector<Matrix3x
     
     // cout << "-1. no inv alr" << endl << M << endl;
     
-    for (int k = i + 1; k > j - 2; k--)
+    for (int k = j - 1; k > i; k--)
         M = invert2x2(color_R[k]) * Ts[k] * M;
     
     // cout << "0. inv alr" << endl << M << endl;
@@ -216,13 +216,68 @@ Vector2D trace_ray_auto(float r, float theta, int i, int j, std::vector<Matrix3x
     return Vector2D(res.x, res.y);
 }
 
+Vector2D trace_ray_auto_after(float r, float theta, int i, int j, std::vector<Matrix3x3> color_R) {
+    Vector3D ray = Vector3D(r, theta, 0);
+    
+    int mini = std::min(i, j);
+    int maxj = std::max(i, j);
+    i = mini;
+    j = maxj;
+    
+    Matrix3x3 M = make_2_matrix(1, 0, 0, 1);
+    
+    for (int k = 0; k < j; k++) {
+        if (k == 5) {
+            Vector3D after_ap = M * ray;
+            if (after_ap.x > 11.6 || after_ap.x < -11.6) {
+                cout << "recasting, got aperature status: " << after_ap.x << endl;
+                float r_a = 11.6;
+                if (r < 0)
+                    r_a = -11.5;
+                float r_e = (r_a - M(0, 1) * theta) / M(0, 0);
+                ray = Vector3D(r_e, theta, 0);
+                cout << "ray we're casting: " << ray << endl;
+            }
+            // crossing the aperture
+            M = Ts[k] * M;
+            continue;
+        }
+        M = Ts[k] * color_R[k] * M;
+    }
+    
+    // reflect off of Lj
+    M = Ls[j] * M;
+    
+    for (int k = j-1; k > i; k--)
+        M = invert2x2(color_R[k]) * Ts[k] * M;
+    
+    // cout << "0. inv alr" << endl << M << endl;
+    
+    M = Ts[i] * invert2x2(Ls[i]) * Ts[i] * M;
+    
+    // forward through to the end
+    for (int k = i+1; k < 9; k++)
+        M = Ts[k] * color_R[k] * M;
+    
+    Vector3D res = M * ray;
+    return Vector2D(res.x, res.y);
+    
+}
+
 void trace_all_rays_auto() {
     // for all i->j from 0->4 (inclusive) all pairs
     for (int i = 0; i < 5; i++) {
         for (int j = i+1; j < 5; j++) {
-            trace_ray_auto(1, 0.01, i, j, R_red);
-            trace_ray_auto(1, 0.01, i, j, R_green);
-            trace_ray_auto(1, 0.01, i, j, R_blue);
+            trace_ray_auto_before(1, 0.01, i, j, R_red);
+            trace_ray_auto_before(1, 0.01, i, j, R_green);
+            trace_ray_auto_before(1, 0.01, i, j, R_blue);
+        }
+    }
+    for (int i = 6; i < 9; i++) {
+        for (int j = i+1; j < 9; j++) {
+            trace_ray_auto_after(1, 0.01, i, j, R_red);
+            trace_ray_auto_after(1, 0.01, i, j, R_green);
+            trace_ray_auto_after(1, 0.01, i, j, R_blue);
         }
     }
 }
@@ -233,18 +288,18 @@ void trace_all_rays_auto() {
 int main( int argc, char** argv ) {
     
   // testing
-    /*
-  cout << trace_ray_auto(14.5, 0.025, 1, 3, R_red) << endl;
-  cout << trace_ray_auto(14.5, 0.025, 1, 3, R_green) << endl;
-  cout << trace_ray_auto(14.5, 0.025, 1, 3, R_blue) << endl;
+  /*
+  cout << trace_ray_auto_before(14.5, 0.025, 1, 3, R_red) << endl;
+  cout << trace_ray_auto_before(14.5, 0.025, 1, 3, R_green) << endl;
+  cout << trace_ray_auto_before(14.5, 0.025, 1, 3, R_blue) << endl;
     
-  cout << trace_ray_auto(-14.5, 0.025, 1, 3, R_red) << endl;
-  cout << trace_ray_auto(-14.5, 0.025, 1, 3, R_green) << endl;
-  cout << trace_ray_auto(-14.5, 0.025, 1, 3, R_blue) << endl;
+  cout << trace_ray_auto_after(-14.5, 0.025, 1, 3, R_red) << endl;
+  cout << trace_ray_auto_after(-14.5, 0.025, 1, 3, R_green) << endl;
+  cout << trace_ray_auto_after(-14.5, 0.025, 1, 3, R_blue) << endl;
    
-  cout << trace_ray_auto(1000, 0.05, 2, 4, R_blue) << endl;
-  cout << trace_ray_auto(-1000, 0.05, 1, 3, R_blue) << endl;
-     */
+  cout << trace_ray_auto_before(1000, 0.05, 2, 4, R_blue) << endl;
+  cout << trace_ray_auto_before(-1000, 0.05, 1, 3, R_blue) << endl;
+  */
 
   // get the options
   AppConfig config; int opt;
