@@ -317,8 +317,6 @@ void PathTracer::fill_textured_pixel(float x0, float y0, float u0, float v0, flo
 
 	float gamma = 1 - alpha - beta;
 	
-	float u = u2*alpha + u0*beta + u1*gamma;
-	float v = v2*alpha + v0*beta + v1*gamma;
 	
 //	cout << x0 << x1 << x2 << y0 << y1 << y2;
 //	cout << xy_to_01 << two_to_01 << alpha << xy_to_12 <<zero_to_12;
@@ -328,6 +326,8 @@ void PathTracer::fill_textured_pixel(float x0, float y0, float u0, float v0, flo
 		float u = u2*alpha + u0*beta + u1*gamma;
 		float v = v2*alpha + v0*beta + v1*gamma;
 		Vector2D uv = Vector2D(u, v);
+		
+		cout << "x: " << x << "y: " << y << "u: " << u << "v: " << v << endl;
 	
 		
 		//TODO: init before?
@@ -336,7 +336,7 @@ void PathTracer::fill_textured_pixel(float x0, float y0, float u0, float v0, flo
 		
 		float sample = (*ghost_aperture_pixels)[int(floor(uv.y*ghost_ap_tex->width) + uv.x)]; //grayscale
 		
-		ghost_buffer.update_pixel_additive(sample, x, y);
+		ghost_buffer.update_pixel_additive(Vector3D(sample), x, ghost_buffer.h-y);
 	}
 	
 }
@@ -397,9 +397,10 @@ void PathTracer::rasterize_textured_triangle(float x0, float y0, float u0, float
 //		sample_nearest = true;
 //	}
 	
+
 	for (int y = min_y; y < max_y; y++) {
 		for (int x = min_x; x < max_x; x++) {
-			fill_textured_pixel(x0, y0, u0, v0, x1, y1, u1, v1, x2, y2, u2, v2, x, y);
+			fill_textured_pixel(x0, y0, u0, v0, x1, y1, u1, v1, x2, y2, u2, v2, x, ghost_buffer.h-y);
 		}
 	}
 
@@ -454,10 +455,9 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
 //	Vector2D ur = shift_vertex(gb_mid_w+100, gb_mid_h-100, scale_amt, shift_amt);
 //	Vector2D lr = shift_vertex(gb_mid_w+100, gb_mid_h+100, scale_amt, shift_amt);
 	
-	rasterize_textured_triangle(gb_mid_w+100, gb_mid_h+100, 0, 0, gb_mid_w-100, gb_mid_h+100, 0, camera->ghost_aperture_texture->height, gb_mid_w+100, gb_mid_h-100, camera->ghost_aperture_texture->width, 0);
+	rasterize_textured_triangle(gb_mid_w-100, gb_mid_h+100, 0, 0, gb_mid_w-100, gb_mid_h-100, 0, camera->ghost_aperture_texture->height, gb_mid_w+100, gb_mid_h+100, camera->ghost_aperture_texture->width, 0);
 	
-	
-	rasterize_textured_triangle(gb_mid_w-100, gb_mid_h-100, camera->ghost_aperture_texture->width, camera->ghost_aperture_texture->height, gb_mid_w-100, gb_mid_h+100, 0, camera->ghost_aperture_texture->height, gb_mid_w+100, gb_mid_h-100, camera->ghost_aperture_texture->width, 0);
+//	rasterize_textured_triangle(gb_mid_w-100, gb_mid_h+100, 0, 0, gb_mid_w-100, gb_mid_h-100, 0, camera->ghost_aperture_texture->height, gb_mid_w+100, gb_mid_h+100, camera->ghost_aperture_texture->width, 0);
 	
 }
 
@@ -465,6 +465,7 @@ void PathTracer::generate_ghost_buffer() {
 	
 	// initialize size
 	
+	cout << "sampleBuffer.w" << sampleBuffer.w << "sampleBuffer.h: "<< sampleBuffer.h;
 	ghost_buffer.resize(sampleBuffer.w, sampleBuffer.h);
 	// get sun angle and axis ray
 	
