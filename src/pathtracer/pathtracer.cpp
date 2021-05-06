@@ -442,11 +442,11 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
 	cout << atan(axis_ray.y / axis_ray.x) << "atan" << endl;
 	cout << acos(angle_to_sun) << "acos" << endl;
 	
-	while(i<ghost_buffer.w and j < ghost_buffer.h){
-		ghost_buffer.update_pixel_additive(test, int(i), int(j));
-		i+= axis_ray[0];
-		j+= axis_ray[1];
-	}
+//	while(i<ghost_buffer.w and j < ghost_buffer.h){
+//		ghost_buffer.update_pixel_additive(test, int(i), int(j));
+//		i+= axis_ray[0];
+//		j+= axis_ray[1];
+//	}
 	// end test
 	
 	
@@ -471,10 +471,10 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
 //	Vector2D ur = shift_vertex(gb_mid_w+100, gb_mid_h+100, scale_amt, shift_amt);
 //	Vector2D lr = shift_vertex(gb_mid_w+100, gb_mid_h-100, scale_amt, shift_amt);
 	
-  Vector2D ul = shift_vertex(-1, 1, scale_amt, shift_amt);
-  Vector2D ll = shift_vertex(-1, -1, scale_amt, shift_amt);
-  Vector2D ur = shift_vertex(1, 1, scale_amt, shift_amt);
-  Vector2D lr = shift_vertex(1, -1, scale_amt, shift_amt);
+  Vector2D ul = shift_vertex(-1, 1, scale_amt, -shift_amt);
+  Vector2D ll = shift_vertex(-1, -1, scale_amt, -shift_amt);
+  Vector2D ur = shift_vertex(1, 1, scale_amt, -shift_amt);
+  Vector2D lr = shift_vertex(1, -1, scale_amt, -shift_amt);
 	
 	// TODO: add sun point instead of midpoint
 	
@@ -736,14 +736,14 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
   /*
    * Start of Lens Flare Starburst Experiment:
    */
-//  Vector3D starburst_radiance = raytrace_starburst(x, y); // TODO: add back
+  Vector3D starburst_radiance = raytrace_starburst(x, y); // TODO: add back
 	//cout << ghost_buffer << "ghost_buffer";
 	Vector3D ghost_color = ghost_buffer.get_pixel_value(x, y); // TODO: representing at Vec3D for now...
 //  cout << "(x, y, radiance): (" << x << ", " << y << ", " << starburst_radiance << ")\n";
 //  Vector3D starburst_radiance = raytrace_starburst_experiment(x, y);
 //  cout << starburst_radiance << endl;
 //  cout << "total radiance: " << total_radiance << ", starburst: " << starburst_radiance << endl;
-    sampleBuffer.update_pixel(total_radiance + ghost_color, x, y);
+    sampleBuffer.update_pixel(total_radiance + ghost_color + starburst_radiance, x, y);
 
 
 
