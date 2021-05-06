@@ -432,13 +432,15 @@ Vector2D PathTracer::shift_vertex(float x, float y, float scale, float shift_amo
 // draw one ghost to ghost_buffer
 void PathTracer::draw_ghost(string color, float r1, float r2) {
 	
+	cout<< "got: " << r1 << r2 << endl;
+	
 	float i = ghost_buffer.w/2;
 	float j = ghost_buffer.h/2;
 	
-	cout << axis_ray << "axis_ray" << endl;
-	cout << angle_to_sun << "angle" << endl;
-	cout << atan(axis_ray.y / axis_ray.x) << "atan" << endl;
-	cout << acos(angle_to_sun) << "acos" << endl;
+	//cout << axis_ray << "axis_ray" << endl;
+	//cout << angle_to_sun << "angle" << endl;
+	//cout << atan(axis_ray.y / axis_ray.x) << "atan" << endl;
+	//cout << acos(angle_to_sun) << "acos" << endl;
 	
 //	while(i<ghost_buffer.w and j < ghost_buffer.h){
 //		ghost_buffer.update_pixel_additive(test, int(i), int(j));
@@ -459,8 +461,8 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
     // randomize this a bit??
     
     // float scale_amt = abs(r2-r1) * 0.05;
-    float alpha = ((float) rand() / RAND_MAX) * 0.2;
-	float scale_amt = abs(r2-r1) * alpha;
+    //float alpha = ((float) rand() / RAND_MAX) * 0.2;
+	float scale_amt = abs(r2-r1) * 0.2;
 	
 //	shift_amt = -50;
 //	scale_amt = 20;
@@ -764,6 +766,60 @@ void PathTracer::generate_ghost_buffer() {
 					draw_ghost("blue", sensor_ray_1.x, sensor_ray_2.x);
         }
     }
+	
+	// uncomment to add ghosts
+//	for(int i =0; i<20; i++) {
+//		float r = ((double) rand() / (RAND_MAX));
+//		float to_add = -r*70;
+//		float r1 = -10+to_add;
+//		float r2 = -20+to_add;
+//		draw_ghost("red", r1+2, r2+2);
+//		draw_ghost("green", r1, r2);
+//		draw_ghost("blue", r1-2, r2-2);
+//	}
+//	for(int i =0; i<20; i++) {
+//		float r = ((double) rand() / (RAND_MAX));
+//		float to_add = -r*700;
+//		float r1 = -10+to_add;
+//		float r2 = -30+to_add;
+//		draw_ghost("red", r1+2, r2+2);
+//		draw_ghost("green", r1, r2);
+//		draw_ghost("blue", r1-2, r2-2);
+//	}
+//
+//	for(int i =0; i<20; i++) {
+//		float r = ((double) rand() / (RAND_MAX));
+//		float to_add = -r*700;
+//		float r1 = -10+to_add;
+//		float r2 = -60+to_add;
+//		draw_ghost("red", r1+2, r2+2);
+//		draw_ghost("green", r1, r2);
+//		draw_ghost("blue", r1-2, r2-2);
+//	}
+//
+//	for(int i =0; i<10; i++) {
+//		int size = 100;
+//		float r = ((double) rand() / (RAND_MAX));
+//		float to_add = -r*700;
+//		float r1 = -10+to_add;
+//		float r2 = -10-size+to_add;
+//		float offset = size/5;
+//		draw_ghost("red", r1+offset, r2+offset);
+//		draw_ghost("green", r1, r2);
+//		draw_ghost("blue", r1-offset, r2-offset);
+//	}
+//
+//	for(int i =0; i<10; i++) {
+//		int size = 300;
+//		float r = ((double) rand() / (RAND_MAX));
+//		float to_add = -r*700;
+//		float r1 = -10+to_add;
+//		float r2 = -10-size+to_add;
+//		float offset = size/7;
+//		draw_ghost("red", r1+offset, r2+offset);
+//		draw_ghost("green", r1, r2);
+//		draw_ghost("blue", r1-offset, r2-offset);
+//	}
 	
 }
 
