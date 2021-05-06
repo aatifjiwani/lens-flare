@@ -450,7 +450,7 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
 	
 	// given r1, r2, and color, draw ghost
 	
-	float shift_amt = -(r1+r2)/2 * 0.5;
+	float shift_amt = -(r1+r2)/2 * 0.4;
 	float scale_amt = abs(r2-r1) * 0.05;
 	
 //	shift_amt = -50;
@@ -658,14 +658,14 @@ void PathTracer::generate_ghost_buffer() {
 	for (int i = 0; i < 5; i++) {
 			for (int j = i+1; j < 5; j++) {
 					Vector2D sensor_ray_1 = trace_ray_auto(14.5, angle_to_sun, i, j, R_red);
-					Vector2D sensor_ray_2 = trace_ray_auto(14.5, angle_to_sun, i, j, R_red);
-					draw_ghost("red", sensor_ray_1.x, sensor_ray_1.y);
+					Vector2D sensor_ray_2 = trace_ray_auto(-14.5, angle_to_sun, i, j, R_red);
+					draw_ghost("red", sensor_ray_1.x, sensor_ray_2.x);
 					sensor_ray_1 = trace_ray_auto(14.5, angle_to_sun, i, j, R_green);
-					sensor_ray_2 = trace_ray_auto(14.5, angle_to_sun, i, j, R_green);
-					draw_ghost("green", sensor_ray_1.x, sensor_ray_1.y);
+					sensor_ray_2 = trace_ray_auto(-14.5, angle_to_sun, i, j, R_green);
+					draw_ghost("green", sensor_ray_1.x, sensor_ray_2.x);
 					sensor_ray_1 = trace_ray_auto(14.5, angle_to_sun, i, j, R_blue);
-					sensor_ray_2 = trace_ray_auto(14.5, angle_to_sun, i, j, R_blue);
-					draw_ghost("blue", sensor_ray_1.x, sensor_ray_1.y);
+					sensor_ray_2 = trace_ray_auto(-14.5, angle_to_sun, i, j, R_blue);
+					draw_ghost("blue", sensor_ray_1.x, sensor_ray_2.x);
 			}
 	}
 	
