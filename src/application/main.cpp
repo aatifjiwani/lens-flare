@@ -195,12 +195,13 @@ Vector2D trace_ray_auto(float r, float theta, int i, int j, std::vector<Matrix3x
         if (k == 5) {
             Vector3D after_ap = M * ray;
             if (after_ap.x > 11.6 || after_ap.x < -11.6) {
+                cout << "recasting, got aperature status: " << after_ap.x << endl;
                 float r_a = 11.6;
                 if (r < 0)
                     r_a = -11.5;
                 float r_e = (r_a - M(0, 1) * theta) / M(0, 0);
                 ray = Vector3D(r_e, theta, 0);
-                cout << "recast from aperture" << ray << endl;
+                cout << "ray we're casting: " << ray << endl;
             }
             // crossing the aperture
             M = Ts[k] * M;
@@ -232,6 +233,7 @@ void trace_all_rays_auto() {
 int main( int argc, char** argv ) {
     
   // testing
+    /*
   cout << trace_ray_auto(14.5, 0.025, 1, 3, R_red) << endl;
   cout << trace_ray_auto(14.5, 0.025, 1, 3, R_green) << endl;
   cout << trace_ray_auto(14.5, 0.025, 1, 3, R_blue) << endl;
@@ -240,6 +242,9 @@ int main( int argc, char** argv ) {
   cout << trace_ray_auto(-14.5, 0.025, 1, 3, R_green) << endl;
   cout << trace_ray_auto(-14.5, 0.025, 1, 3, R_blue) << endl;
    
+  cout << trace_ray_auto(1000, 0.05, 2, 4, R_blue) << endl;
+  cout << trace_ray_auto(-1000, 0.05, 1, 3, R_blue) << endl;
+     */
 
   // get the options
   AppConfig config; int opt;
