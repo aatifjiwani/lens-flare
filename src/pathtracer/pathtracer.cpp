@@ -411,7 +411,7 @@ void PathTracer::rasterize_textured_triangle(float x0, float y0, float u0, float
 
 Vector2D PathTracer::shift_vertex(float x, float y, float scale, float shift_amount) {
 	Vector3D v = Vector3D(x, y, 1);
-	float new_angle_to_sun = angle_to_sun
+	float new_angle_to_sun = angle_to_sun;
 	//atan(axis_ray.y / axis_ray.x);
 	Matrix3x3 scaling = Matrix3x3(scale, 0, 0,
 																0, scale, 0,
@@ -581,7 +581,7 @@ std::vector<Matrix3x3> R_red = create_Rs_for_color(red_refr);
 std::vector<Matrix3x3> R_blue = create_Rs_for_color(blue_refr);
 std::vector<Matrix3x3> R_green = create_Rs_for_color(green_refr);
 
-Vector2D trace_ray_auto(float r, float theta, int i, int j, std::vector<Matrix3x3> color_R) {
+Vector2D trace_ray_auto_before(float r, float theta, int i, int j, std::vector<Matrix3x3> color_R) {
 		// mapping to 3D
 		Vector3D ray = Vector3D(r, theta, 0);
 		
@@ -601,7 +601,7 @@ Vector2D trace_ray_auto(float r, float theta, int i, int j, std::vector<Matrix3x
 		
 		// cout << "-1. no inv alr" << endl << M << endl;
 		
-		for (int k = i + 1; k > j - 2; k--)
+		for (int k = j - 1; k > i; k--)
 				M = invert2x2(color_R[k]) * Ts[k] * M;
 		
 		// cout << "0. inv alr" << endl << M << endl;
@@ -615,13 +615,13 @@ Vector2D trace_ray_auto(float r, float theta, int i, int j, std::vector<Matrix3x
 				if (k == 5) {
 						Vector3D after_ap = M * ray;
 						if (after_ap.x > 11.6 || after_ap.x < -11.6) {
-								cout << "recasting, got aperature status: " << after_ap.x << endl;
+								// cout << "recasting, got aperature status: " << after_ap.x << endl;
 								float r_a = 11.6;
 								if (r < 0)
 										r_a = -11.5;
 								float r_e = (r_a - M(0, 1) * theta) / M(0, 0);
 								ray = Vector3D(r_e, theta, 0);
-								cout << "ray we're casting: " << ray << endl;
+								// cout << "ray we're casting: " << ray << endl;
 						}
 						// crossing the aperture
 						M = Ts[k] * M;
@@ -634,6 +634,54 @@ Vector2D trace_ray_auto(float r, float theta, int i, int j, std::vector<Matrix3x
 		
 		Vector3D res = M * ray;
 		return Vector2D(res.x, res.y);
+}
+
+Vector2D trace_ray_auto_after(float r, float theta, int i, int j, std::vector<Matrix3x3> color_R) {
+    Vector3D ray = Vector3D(r, theta, 0);
+    
+    int mini = std::min(i, j);
+    int maxj = std::max(i, j);
+    i = mini;
+    j = maxj;
+    
+    Matrix3x3 M = make_2_matrix(1, 0, 0, 1);
+    
+    for (int k = 0; k < j; k++) {
+        if (k == 5) {
+            Vector3D after_ap = M * ray;
+            if (after_ap.x > 11.6 || after_ap.x < -11.6) {
+                // cout << "recasting, got aperature status: " << after_ap.x << endl;
+                float r_a = 11.6;
+                if (r < 0)
+                    r_a = -11.5;
+                float r_e = (r_a - M(0, 1) * theta) / M(0, 0);
+                ray = Vector3D(r_e, theta, 0);
+                // cout << "ray we're casting: " << ray << endl;
+            }
+            // crossing the aperture
+            M = Ts[k] * M;
+            continue;
+        }
+        M = Ts[k] * color_R[k] * M;
+    }
+    
+    // reflect off of Lj
+    M = Ls[j] * M;
+    
+    for (int k = j-1; k > i; k--)
+        M = invert2x2(color_R[k]) * Ts[k] * M;
+    
+    // cout << "0. inv alr" << endl << M << endl;
+    
+    M = Ts[i] * invert2x2(Ls[i]) * Ts[i] * M;
+    
+    // forward through to the end
+    for (int k = i+1; k < 9; k++)
+        M = Ts[k] * color_R[k] * M;
+    
+    Vector3D res = M * ray;
+    return Vector2D(res.x, res.y);
+    
 }
 
 
@@ -659,17 +707,31 @@ void PathTracer::generate_ghost_buffer() {
 	
 	for (int i = 0; i < 5; i++) {
 			for (int j = i+1; j < 5; j++) {
-					Vector2D sensor_ray_1 = trace_ray_auto(14.5, angle_to_sun, i, j, R_red);
-					Vector2D sensor_ray_2 = trace_ray_auto(-14.5, angle_to_sun, i, j, R_red);
+					Vector2D sensor_ray_1 = trace_ray_auto_before(14.5, angle_to_sun, i, j, R_red);
+					Vector2D sensor_ray_2 = trace_ray_auto_before(-14.5, angle_to_sun, i, j, R_red);
 					draw_ghost("red", sensor_ray_1.x, sensor_ray_2.x);
-					sensor_ray_1 = trace_ray_auto(14.5, angle_to_sun, i, j, R_green);
-					sensor_ray_2 = trace_ray_auto(-14.5, angle_to_sun, i, j, R_green);
+					sensor_ray_1 = trace_ray_auto_before(14.5, angle_to_sun, i, j, R_green);
+					sensor_ray_2 = trace_ray_auto_before(-14.5, angle_to_sun, i, j, R_green);
 					draw_ghost("green", sensor_ray_1.x, sensor_ray_2.x);
-					sensor_ray_1 = trace_ray_auto(14.5, angle_to_sun, i, j, R_blue);
-					sensor_ray_2 = trace_ray_auto(-14.5, angle_to_sun, i, j, R_blue);
+					sensor_ray_1 = trace_ray_auto_before(14.5, angle_to_sun, i, j, R_blue);
+					sensor_ray_2 = trace_ray_auto_before(-14.5, angle_to_sun, i, j, R_blue);
 					draw_ghost("blue", sensor_ray_1.x, sensor_ray_2.x);
 			}
 	}
+    
+    for (int i = 6; i < 9; i++) {
+        for (int j = i+1; j < 9; j++) {
+					Vector2D sensor_ray_1 = trace_ray_auto_after(14.5, angle_to_sun, i, j, R_red);
+					Vector2D sensor_ray_2 = trace_ray_auto_after(-14.5, angle_to_sun, i, j, R_red);
+					draw_ghost("red", sensor_ray_1.x, sensor_ray_2.x);
+					sensor_ray_1 = trace_ray_auto_after(14.5, angle_to_sun, i, j, R_green);
+					sensor_ray_2 = trace_ray_auto_after(-14.5, angle_to_sun, i, j, R_green);
+					draw_ghost("green", sensor_ray_1.x, sensor_ray_2.x);
+					sensor_ray_1 = trace_ray_auto_after(14.5, angle_to_sun, i, j, R_blue);
+					sensor_ray_2 = trace_ray_auto_after(-14.5, angle_to_sun, i, j, R_blue);
+					draw_ghost("blue", sensor_ray_1.x, sensor_ray_2.x);
+        }
+    }
 	
 }
 
@@ -691,6 +753,7 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
   Vector3D total_radiance = Vector3D();
 
   // BEGIN UNCOMMENT
+  /*
   float s1 = 0.0;
   float s2 = 0.0;
   int sample = 1;
@@ -730,18 +793,22 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
   // uncomment 3
   //total_radiance /= (double) num_samples;
   total_radiance /= (double) sample;
+   */
 // END UNCOMMENT
 
   /*
    * Start of Lens Flare Starburst Experiment:
    */
   //Vector3D starburst_radiance = raytrace_starburst(x, y); // TODO: add back
+
 	//cout << ghost_buffer << "ghost_buffer";
 	Vector3D ghost_color = ghost_buffer.get_pixel_value(x, y); // TODO: representing at Vec3D for now...
 //  cout << "(x, y, radiance): (" << x << ", " << y << ", " << starburst_radiance << ")\n";
 //  Vector3D starburst_radiance = raytrace_starburst_experiment(x, y);
 //  cout << starburst_radiance << endl;
 //  cout << "total radiance: " << total_radiance << ", starburst: " << starburst_radiance << endl;
+
+
     sampleBuffer.update_pixel(total_radiance + ghost_color, x, y);
 
 
