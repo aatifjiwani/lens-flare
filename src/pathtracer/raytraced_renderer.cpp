@@ -49,6 +49,8 @@ RaytracedRenderer::RaytracedRenderer(size_t ns_aa,
                        double lensRadius,
                        double focalDistance,
                        std::string aperture_filename,
+                       double flare_radius,
+                       double flare_intensity) {
 											 std::string ghost_aperture_filename) {
   state = INIT;
 
@@ -68,6 +70,9 @@ RaytracedRenderer::RaytracedRenderer(size_t ns_aa,
   this->focalDistance = focalDistance;
   this->aperture_filename = aperture_filename;
 	this->ghost_aperture_filename = ghost_aperture_filename;
+
+  pt->flare_radius = flare_radius;
+  pt->flare_intensity = flare_intensity;
 
   this->filename = filename;
 
