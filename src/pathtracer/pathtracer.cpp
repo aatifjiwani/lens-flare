@@ -427,7 +427,7 @@ Vector2D PathTracer::shift_vertex(float x, float y, float scale, float shift_amo
 																	
 	return Vector2D(result.x, result.y);
 																	 
-																	 }
+}
 
 // draw one ghost to ghost_buffer
 void PathTracer::draw_ghost(string color, float r1, float r2) {
@@ -755,7 +755,6 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
   Vector3D total_radiance = Vector3D();
 
   // BEGIN UNCOMMENT
-  /*
   float s1 = 0.0;
   float s2 = 0.0;
   int sample = 1;
@@ -795,13 +794,12 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
   // uncomment 3
   //total_radiance /= (double) num_samples;
   total_radiance /= (double) sample;
-   */
 // END UNCOMMENT
 
   /*
    * Start of Lens Flare Starburst Experiment:
    */
-  //Vector3D starburst_radiance = raytrace_starburst(x, y); // TODO: add back
+  Vector3D starburst_radiance = raytrace_starburst(x, y); // TODO: add back
 
 	//cout << ghost_buffer << "ghost_buffer";
 	Vector3D ghost_color = ghost_buffer.get_pixel_value(x, y); // TODO: representing at Vec3D for now...
@@ -811,7 +809,7 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
 //  cout << "total radiance: " << total_radiance << ", starburst: " << starburst_radiance << endl;
 
 
-    sampleBuffer.update_pixel(total_radiance + ghost_color, x, y);
+    sampleBuffer.update_pixel(total_radiance + ghost_color + starburst_radiance, x, y);
 
 
 
