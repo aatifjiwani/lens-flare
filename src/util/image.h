@@ -60,6 +60,23 @@ struct ImageBuffer {
     p |= 0xFF000000;
     data[x + y * w] = p;
   }
+	
+//	Color get_color_at_pixel(size_t x, size_t y) {
+//		return fromHex(data[x + y * w]);
+//	}
+//	
+//	void add_to_pixel_value(const Color& c, size_t x, size_t y) {
+//		Color prev = fromHex(data[x + y * w]);
+//		c += prev;
+//		assert(0 <= x && x < w);
+//		assert(0 <= y && y < h);
+//		uint32_t p = 0;
+//		p |= ((uint32_t) (clamp(0.f, 1.f, c.b) * 255)) << 16;
+//		p |= ((uint32_t) (clamp(0.f, 1.f, c.g) * 255)) << 8;
+//		p |= ((uint32_t) (clamp(0.f, 1.f, c.r) * 255));
+//		p |= 0xFF000000;
+//		data[x + y * w] = p;
+//	}
 
   /**
    * If the buffer is empty.
@@ -124,6 +141,14 @@ struct HDRImageBuffer {
     // assert(0 <= y && y < h);
     data[x + y * w] = s;
   }
+	
+	void update_pixel_additive(const Vector3D& s, size_t x, size_t y) {
+		data[x + y * w] += s;
+	}
+	
+	Vector3D get_pixel_value(size_t x, size_t y) {
+		return data[x + y * w];
+	}
 
   /**
    * Update the color of a given pixel. Blend new pixel color with current

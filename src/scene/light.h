@@ -19,11 +19,12 @@ class DirectionalLight : public SceneLight {
   Vector3D sample_L(const Vector3D p, Vector3D* wi, double* distToLight,
                     double* pdf) const;
   bool is_delta_light() const { return true; }
+	
+	Vector3D dirToLight;
 
   Vector3D posLight;
   Vector3D radiance;
-private:
-  Vector3D dirToLight;
+  
 
 }; // class Directional Light
 

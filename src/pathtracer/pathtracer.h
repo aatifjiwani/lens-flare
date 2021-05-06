@@ -42,7 +42,19 @@ namespace CGL {
         /**
          * Testing functions
          */
-         void find_sun_pos();
+				void find_sun_pos();
+			
+				void fill_textured_pixel(float x0, float y0, float u0, float v0, float x1, float y1, float u1, float v1, float x2, float y2, float u2, float v2, int x, int y, Vector3D ghost_color);
+			
+				void rasterize_textured_triangle(float x0, float y0, float u0, float v0,
+					float x1, float y1, float u1, float v1, float x2, float y2, float u2, float v2, Vector3D ghost_color);
+			
+				Vector2D shift_vertex(float x, float y, float scale, float shift_amount);
+				
+				HDRImageBuffer ghost_buffer;
+				void generate_ghost_buffer();
+			
+				void draw_ghost(string color, float r1, float r2);
 
         /**
          * If the pathtracer is in READY, delete all internal data, transition to INIT.
@@ -117,6 +129,10 @@ namespace CGL {
 
         std::vector<Vector2D> flare_origins; ///< normalized screen space origins of flares
         std::vector<Vector3D> flare_radiance; ///< radiance of captured directional light sources
+//			  std::vector<float> flare_angles;
+//			  std::vector<Vector2D> flare_axis_rays;
+				Vector2D axis_ray;
+				float angle_to_sun;
 
         // Tonemapping Controls //
 
