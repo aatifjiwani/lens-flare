@@ -47,8 +47,9 @@ void PathTracer::find_sun_pos() {
 				Matrix3x3 w2c = camera->c2w.inv();
 				Vector3D cam_dirToLight = w2c*dlight->dirToLight; // towards sun
 				cam_dirToLight.normalize();
-				float angle_to_sun = dot(cam_dirToLight, Vector3D(0, 0, 1)); // todo: z points out and positive?
-			  Vector2D axis_ray = Vector2D(ns_x, ns_y);
+				angle_to_sun = dot(cam_dirToLight, Vector3D(0, 0, 1)); // todo: z points out and positive?
+				cout << ns_x << ns_y << "test";
+			  axis_ray = Vector2D(ns_x, ns_y);
 				
 				//flare_angles.push_back(angle_to_sun);
 				//flare_axis_rays.push_back(axis_ray);
@@ -299,50 +300,164 @@ Vector3D PathTracer::est_radiance_global_illumination(const Ray &r) {
   return L_out;
 }
 
+
+void PathTracer::fill_textured_pixel(float x0, float y0, float u0, float v0, float x1, float y1, float u1, float v1, float x2, float y2, float u2, float v2, int x, int y) {
+ // assumes correct winding
+	// assumes in bounds
+	// don't fill if any bary coords are <= 0
+	float xy_to_01 = -(y1-y0)*(x-x0) + (x1 - x0)*(y-y0);
+	float two_to_01 = -(y1-y0)*(x2-x0) + (x1 - x0)*(y2-y0);
+
+	float alpha = xy_to_01/two_to_01;
+//	cout << "test1: " << xy_to_01 << two_to_01 << "end test";
+	float xy_to_12 = -(y2-y1)*(x-x1) + (x2 - x1)*(y-y1);
+	float zero_to_12 = -(y2-y1)*(x0-x1) + (x2 - x1)*(y0-y1);
+	float beta = xy_to_12/zero_to_12;
+//	cout << "test1: " << xy_to_12 << zero_to_12 << "end test";
+
+	float gamma = 1 - alpha - beta;
+	
+	float u = u2*alpha + u0*beta + u1*gamma;
+	float v = v2*alpha + v0*beta + v1*gamma;
+	
+//	cout << x0 << x1 << x2 << y0 << y1 << y2;
+//	cout << xy_to_01 << two_to_01 << alpha << xy_to_12 <<zero_to_12;
+//
+//	cout<< gamma << alpha << beta << "test";
+	if (gamma >= 0 and alpha >= 0 and beta >= 0) {
+		float u = u2*alpha + u0*beta + u1*gamma;
+		float v = v2*alpha + v0*beta + v1*gamma;
+		Vector2D uv = Vector2D(u, v);
+	
+		
+		//TODO: init before?
+		CameraApertureTexture* ghost_ap_tex = camera->ghost_aperture_texture;
+		std::vector<float>* ghost_aperture_pixels = &ghost_ap_tex->aperture;
+		
+		float sample = (*ghost_aperture_pixels)[int(floor(uv.y*ghost_ap_tex->width) + uv.x)]; //grayscale
+		
+		ghost_buffer.update_pixel_additive(sample, x, y);
+	}
+	
+}
+
+
+void PathTracer::rasterize_textured_triangle(float x0, float y0, float u0, float v0,
+	float x1, float y1, float u1, float v1,
+	float x2, float y2, float u2, float v2)
+{
+	if(y1<y0) {
+		swap(x0, x1);
+		swap(y0, y1);
+		swap(u0, u1);
+		swap(v0, v1);
+
+	}
+	if (y2<y0) {
+		swap(x0, x2);
+		swap(y0, y2);
+		swap(u0, u2);
+		swap(v0, v2);
+
+	}
+	if (y2<y1) {
+		swap(x1, x2);
+		swap(y1, y2);
+		swap(u1, u2);
+		swap(v1, v2);
+	}
+	assert(y0 <= y1 && y1 <= y2);
+	
+//	int sr = (int)sqrt(sample_rate);
+
+//	x0 *= sr;
+//	y0 *= sr;
+//	x1 *= sr;
+//	y1 *= sr;
+//	x2 *= sr;
+//	y2 *= sr;
+	
+	// we can think of our centers of pixels as integer coordinates with this.
+	
+	x0-=0.5;
+	y0-=0.5;
+	x1-=0.5;
+	y1-=0.5;
+	x2-=0.5;
+	y2-=0.5;
+	
+	//find bounding box
+	float min_x = max(0, int(floor(min(min(x0, x1), x2))));
+	float max_x = min(int(ghost_buffer.w - 1), int(ceil(max(max(x0, x1), x2))));
+	float min_y = max(0, int(floor(y0)));
+	float max_y = min(int(ghost_buffer.h - 1), int(ceil(y2)));
+//
+//	bool sample_nearest = false;
+//	if(psm == P_NEAREST) {
+//		sample_nearest = true;
+//	}
+	
+	for (int y = min_y; y < max_y; y++) {
+		for (int x = min_x; x < max_x; x++) {
+			fill_textured_pixel(x0, y0, u0, v0, x1, y1, u1, v1, x2, y2, u2, v2, x, y);
+		}
+	}
+
+
+
+}
+
+Vector2D PathTracer::shift_vertex(float x, float y, float scale, float shift_amount) {
+	Vector3D v = Vector3D(x, y, 1);
+	Matrix3x3 matrix = Matrix3x3(scale*cos(angle_to_sun), -scale*sin(angle_to_sun), shift_amount*cos(angle_to_sun), scale*sin(angle_to_sun), scale*cos(angle_to_sun), shift_amount*cos(angle_to_sun), 0, 0, 1);
+	Vector3D result = matrix*v;
+																	
+	return Vector2D(result.x, result.y);
+																	 
+																	 }
+
 // draw one ghost to ghost_buffer
 void PathTracer::draw_ghost(string color, float r1, float r2) {
 	
-//	float sun_angle = flare_angles.back(); // change to support multiple suns
-//	Vector2D axis_ray = flare_axis_rays.back();
 	
-//	float shift_amt = -(r1+r2)/2;
-//	float scale_amt = abs(r2-r1);
-//
-//	//define 4 points
-//	Vector3D p1 = Vector3D(-1, -1, 1);
+	// test: axis ray
+	Vector3D test = Vector3D(1, 1, 1);
 	
+	float i = ghost_buffer.w/2;
+	float j = ghost_buffer.h/2;
 	
-	// run shift_vertex on points
+	cout << axis_ray << "axis_ray";
+	
+	while(i<ghost_buffer.w and j < ghost_buffer.h){
+		ghost_buffer.update_pixel_additive(test, int(i), int(j));
+		i+= axis_ray[0];
+		j+= axis_ray[1];
+	}
+	// end test
 	
 	
 	// rasturize 2 textured triangles to ghost_buffer
-	//ghost_aperture_function->sample_aperture(u, v);
-	//camera->ghost_texture?
-	// todo: proj 1 code
+	
+	// given r1, r2, and color, draw ghost
+	
+	float shift_amt = -(r1+r2)/2;
+	float scale_amt = abs(r2-r1);
+	
+	float gb_mid_w = ghost_buffer.w/2;
+	float ga_mid_w = camera->ghost_aperture_texture->width/2;
+	float gb_mid_h = ghost_buffer.h/2;
+	float ga_mid_h = camera->ghost_aperture_texture->height/2;
+	
+	//define 4 points in screenspace
+//	Vector2D ul = shift_vertex(gb_mid_w-100, gb_mid_h-100, scale_amt, shift_amt);
+//	Vector2D ll = shift_vertex(gb_mid_w-100, gb_mid_h+100, scale_amt, shift_amt);
+//	Vector2D ur = shift_vertex(gb_mid_w+100, gb_mid_h-100, scale_amt, shift_amt);
+//	Vector2D lr = shift_vertex(gb_mid_w+100, gb_mid_h+100, scale_amt, shift_amt);
+	
+	rasterize_textured_triangle(gb_mid_w+100, gb_mid_h+100, 0, 0, gb_mid_w-100, gb_mid_h+100, 0, camera->ghost_aperture_texture->height, gb_mid_w+100, gb_mid_h-100, camera->ghost_aperture_texture->width, 0);
 	
 	
-	
-	
-	
-	//tests
-	
-	// test 1: draw line on axis
-	// test: make sure it's additive
-	// TODO: get actual color from aperature texture.
-	// test: one ghost w/ weird aperature
-	
-	// test: figure out scaling
-	Vector3D test = Vector3D(1, 1, 1);
-	
-
-	for(int i = int(ghost_buffer.w/2); i<ghost_buffer.w; i++) {
-		for(int j = int(ghost_buffer.h/2); j< ghost_buffer.h; j++) {
-			ghost_buffer.update_pixel_additive(test, i, j);
-		}
-	}
-	
-	
-	
+	rasterize_textured_triangle(gb_mid_w-100, gb_mid_h-100, camera->ghost_aperture_texture->width, camera->ghost_aperture_texture->height, gb_mid_w-100, gb_mid_h+100, 0, camera->ghost_aperture_texture->height, gb_mid_w+100, gb_mid_h-100, camera->ghost_aperture_texture->width, 0);
 	
 }
 
@@ -353,9 +468,11 @@ void PathTracer::generate_ghost_buffer() {
 	ghost_buffer.resize(sampleBuffer.w, sampleBuffer.h);
 	// get sun angle and axis ray
 	
-	
+	// if there's no sun, don't do this function
+	if (axis_ray.x == 0 and axis_ray.y == 0) {
+		return;
+	}
 
-	
 	// run every ghost func on each wavelength
 	// additively store stuff in ghost buffer
 	
@@ -382,51 +499,51 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
   Vector3D total_radiance = Vector3D();
 
   // BEGIN UNCOMMENT
-  float s1 = 0.0;
-  float s2 = 0.0;
-  int sample = 1;
-
-  for (sample = 1; sample <= num_samples; sample++) {
-      // adaptive sampling
-
-      Vector2D sample_position = origin + gridSampler->get_sample(); // should return something between ([x, x+1], [y, y+1])
-      double normalized_x = sample_position.x / (double) sampleBuffer.w; // normalize coordinates
-      double normalized_y = sample_position.y / (double) sampleBuffer.h;
-
-      Ray to_trace = camera->generate_ray(normalized_x, normalized_y);
-      to_trace.depth = max_ray_depth;
-      Vector3D sample_radiance = est_radiance_global_illumination(to_trace);
-
-      float illum = sample_radiance.illum();
-      s1 += illum;
-      s2 += illum * illum;
-
-      // uncomment 1
-      total_radiance += sample_radiance;
-      //total_radiance += est_radiance_global_illumination(to_trace);
-
-      // uncomment 2
-      // check only every samplesPerBatch
-      if (sample > 1 && sample % samplesPerBatch == 0) {
-          float std = std::sqrt(1.0 / (sample - 1) * (s2 - s1*s1 / sample));
-          float confidence_interval = 1.96 * std / std::sqrt(sample);
-          if (confidence_interval <= maxTolerance * s1 / sample) {
-              break;
-          }
-      }
-
-  }
-
-
-  // uncomment 3
-  //total_radiance /= (double) num_samples;
-  total_radiance /= (double) sample;
+//  float s1 = 0.0;
+//  float s2 = 0.0;
+//  int sample = 1;
+//
+//  for (sample = 1; sample <= num_samples; sample++) {
+//      // adaptive sampling
+//
+//      Vector2D sample_position = origin + gridSampler->get_sample(); // should return something between ([x, x+1], [y, y+1])
+//      double normalized_x = sample_position.x / (double) sampleBuffer.w; // normalize coordinates
+//      double normalized_y = sample_position.y / (double) sampleBuffer.h;
+//
+//      Ray to_trace = camera->generate_ray(normalized_x, normalized_y);
+//      to_trace.depth = max_ray_depth;
+//      Vector3D sample_radiance = est_radiance_global_illumination(to_trace);
+//
+//      float illum = sample_radiance.illum();
+//      s1 += illum;
+//      s2 += illum * illum;
+//
+//      // uncomment 1
+//      total_radiance += sample_radiance;
+//      //total_radiance += est_radiance_global_illumination(to_trace);
+//
+//      // uncomment 2
+//      // check only every samplesPerBatch
+//      if (sample > 1 && sample % samplesPerBatch == 0) {
+//          float std = std::sqrt(1.0 / (sample - 1) * (s2 - s1*s1 / sample));
+//          float confidence_interval = 1.96 * std / std::sqrt(sample);
+//          if (confidence_interval <= maxTolerance * s1 / sample) {
+//              break;
+//          }
+//      }
+//
+//  }
+//
+//
+//  // uncomment 3
+//  //total_radiance /= (double) num_samples;
+//  total_radiance /= (double) sample;
 // END UNCOMMENT
 
   /*
    * Start of Lens Flare Starburst Experiment:
    */
-  // Vector3D starburst_radiance = raytrace_starburst(x, y); // TODO: add back
+  //Vector3D starburst_radiance = raytrace_starburst(x, y); // TODO: add back
 	//cout << ghost_buffer << "ghost_buffer";
 	Vector3D ghost_color = ghost_buffer.get_pixel_value(x, y); // TODO: representing at Vec3D for now...
 //  cout << "(x, y, radiance): (" << x << ", " << y << ", " << starburst_radiance << ")\n";
@@ -437,7 +554,7 @@ void PathTracer::raytrace_pixel(size_t x, size_t y) {
     
   //uncomment 4
   //sampleCountBuffer[x + y * sampleBuffer.w] = num_samples;
-  sampleCountBuffer[x + y * sampleBuffer.w] = sample;
+  //sampleCountBuffer[x + y * sampleBuffer.w] = sample;
 
 }
 
