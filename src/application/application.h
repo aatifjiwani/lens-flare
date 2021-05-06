@@ -65,7 +65,7 @@ struct AppConfig {
 
     // Begin Lens Flare implementation
     aperture_filename = "";
-    pathtracer_lens_flare_radius = 20.0;
+    pathtracer_lens_flare_radius = 25.0;
     pathtracer_lens_flare_intensity = 1;
 		ghost_aperture_filename = "";
   }
