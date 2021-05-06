@@ -44,10 +44,10 @@ namespace CGL {
          */
 				void find_sun_pos();
 			
-				void fill_textured_pixel(float x0, float y0, float u0, float v0, float x1, float y1, float u1, float v1, float x2, float y2, float u2, float v2, int x, int y);
+				void fill_textured_pixel(float x0, float y0, float u0, float v0, float x1, float y1, float u1, float v1, float x2, float y2, float u2, float v2, int x, int y, Vector3D ghost_color);
 			
 				void rasterize_textured_triangle(float x0, float y0, float u0, float v0,
-					float x1, float y1, float u1, float v1, float x2, float y2, float u2, float v2);
+					float x1, float y1, float u1, float v1, float x2, float y2, float u2, float v2, Vector3D ghost_color);
 			
 				Vector2D shift_vertex(float x, float y, float scale, float shift_amount);
 				

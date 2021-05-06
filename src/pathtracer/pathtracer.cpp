@@ -301,7 +301,7 @@ Vector3D PathTracer::est_radiance_global_illumination(const Ray &r) {
 }
 
 
-void PathTracer::fill_textured_pixel(float x0, float y0, float u0, float v0, float x1, float y1, float u1, float v1, float x2, float y2, float u2, float v2, int x, int y) {
+void PathTracer::fill_textured_pixel(float x0, float y0, float u0, float v0, float x1, float y1, float u1, float v1, float x2, float y2, float u2, float v2, int x, int y, Vector3D ghost_color) {
  // assumes correct winding
 	// assumes in bounds
 	// don't fill if any bary coords are <= 0
@@ -336,7 +336,7 @@ void PathTracer::fill_textured_pixel(float x0, float y0, float u0, float v0, flo
 		
 		float sample = (*ghost_aperture_pixels)[int(floor(uv.y)*ghost_ap_tex->width + uv.x)]; //grayscale
 		
-		ghost_buffer.update_pixel_additive(Vector3D(sample), x, y);
+		ghost_buffer.update_pixel_additive(sample*ghost_color, x, y);
 	}
 	
 }
@@ -344,7 +344,7 @@ void PathTracer::fill_textured_pixel(float x0, float y0, float u0, float v0, flo
 
 void PathTracer::rasterize_textured_triangle(float x0, float y0, float u0, float v0,
 	float x1, float y1, float u1, float v1,
-	float x2, float y2, float u2, float v2)
+	float x2, float y2, float u2, float v2, Vector3D ghost_color)
 {
 	if(y1<y0) {
 		swap(x0, x1);
@@ -400,7 +400,7 @@ void PathTracer::rasterize_textured_triangle(float x0, float y0, float u0, float
 
 	for (int y = min_y; y < max_y; y++) {
 		for (int x = min_x; x < max_x; x++) {
-			fill_textured_pixel(x0, y0, u0, v0, x1, y1, u1, v1, x2, y2, u2, v2, x, y);
+			fill_textured_pixel(x0, y0, u0, v0, x1, y1, u1, v1, x2, y2, u2, v2, x, y, ghost_color);
 		}
 	}
 
@@ -454,11 +454,11 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
 	
 	// given r1, r2, and color, draw ghost
 	
-	float shift_amt = -(r1+r2)/2;
-	float scale_amt = abs(r2-r1);
+	float shift_amt = -(r1+r2)/2 * 0.5;
+	float scale_amt = abs(r2-r1)*0.05;
 	
-	shift_amt = -50;
-	scale_amt = 20;
+//	shift_amt = -50;
+//	scale_amt = 20;
 	
 //	float gb_mid_w = flare_origins[0].x / 2.0; ghost_buffer.w/2;
 //	float gb_mid_h = flare_origins[0].y / 2;
@@ -477,9 +477,22 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
   Vector2D lr = shift_vertex(1, -1, scale_amt, shift_amt);
 	
 	// TODO: add sun point instead of midpoint
-	rasterize_textured_triangle(gb_mid_w+ul.x, gb_mid_h+ul.y, 0, 0, gb_mid_w+ll.x, gb_mid_h+ll.y, 0, camera->ghost_aperture_texture->height, gb_mid_w+ur.x, gb_mid_h+ur.y, camera->ghost_aperture_texture->width, 0);
 	
-	rasterize_textured_triangle(gb_mid_w+lr.x, gb_mid_h+lr.y, 0, 0, gb_mid_w+ll.x, gb_mid_h+ll.y, 0, camera->ghost_aperture_texture->height, gb_mid_w+ur.x, gb_mid_h+ur.y, camera->ghost_aperture_texture->width, 0);
+	Vector3D ghost_color = Vector3D();
+	if (color == "red") {
+		ghost_color = Vector3D(1, 0, 0);
+	} else if (color == "green") {
+		ghost_color = Vector3D(0, 1, 0);
+	} else {
+		ghost_color = Vector3D(0, 0, 1);
+	}
+	
+	float intensity_scalar = 0.8;
+	ghost_color *= intensity_scalar;
+	
+	rasterize_textured_triangle(gb_mid_w+ul.x, gb_mid_h+ul.y, 0, 0, gb_mid_w+ll.x, gb_mid_h+ll.y, 0, camera->ghost_aperture_texture->height, gb_mid_w+ur.x, gb_mid_h+ur.y, camera->ghost_aperture_texture->width, 0, ghost_color);
+	
+	rasterize_textured_triangle(gb_mid_w+lr.x, gb_mid_h+lr.y, 0, 0, gb_mid_w+ll.x, gb_mid_h+ll.y, 0, camera->ghost_aperture_texture->height, gb_mid_w+ur.x, gb_mid_h+ur.y, camera->ghost_aperture_texture->width, 0, ghost_color);
 	
 //	rasterize_textured_triangle(gb_mid_w+100, gb_mid_h-100, camera->ghost_aperture_texture->width, camera->ghost_aperture_texture->height, gb_mid_w-100, gb_mid_h-100, 0, camera->ghost_aperture_texture->height, gb_mid_w+100, gb_mid_h+100, camera->ghost_aperture_texture->width, 0);
 	
@@ -644,15 +657,18 @@ void PathTracer::generate_ghost_buffer() {
 	// additively store stuff in ghost buffer
 	
 	//test
-	draw_ghost("red", -5, 5);
 	
 	for (int i = 0; i < 5; i++) {
 			for (int j = i+1; j < 5; j++) {
 					Vector2D sensor_ray_1 = trace_ray_auto(14.5, angle_to_sun, i, j, R_red);
 					Vector2D sensor_ray_2 = trace_ray_auto(14.5, angle_to_sun, i, j, R_red);
 					draw_ghost("red", sensor_ray_1.x, sensor_ray_1.y);
-//					trace_ray_auto(1, 0.01, i, j, R_green);
-//					trace_ray_auto(1, 0.01, i, j, R_blue);
+					sensor_ray_1 = trace_ray_auto(14.5, angle_to_sun, i, j, R_green);
+					sensor_ray_2 = trace_ray_auto(14.5, angle_to_sun, i, j, R_green);
+					draw_ghost("green", sensor_ray_1.x, sensor_ray_1.y);
+					sensor_ray_1 = trace_ray_auto(14.5, angle_to_sun, i, j, R_blue);
+					sensor_ray_2 = trace_ray_auto(14.5, angle_to_sun, i, j, R_blue);
+					draw_ghost("blue", sensor_ray_1.x, sensor_ray_1.y);
 			}
 	}
 	
