@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.81.16 commit date:2019-11-20, commit time:14:27, hash:26bd5ebd42e3</authoring_tool>
     </contributor>
-    <created>2021-05-05T15:37:21</created>
-    <modified>2021-05-05T15:37:21</modified>
+    <created>2021-05-05T17:21:35</created>
+    <modified>2021-05-05T17:21:35</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -119,7 +119,7 @@
     <light id="Area-light" name="Area">
       <technique_common>
         <directional>
-          <color sid="color">1 1 1</color>
+          <color sid="color">1 0.944 0.544</color>
         </directional>
       </technique_common>
       <extra>
@@ -660,7 +660,7 @@
         <instance_light url="#Pyramid_Light-light"/>
       </node>
       <node id="Point" name="Point" type="NODE">
-        <matrix sid="transform">1 0 0 -1.766414 0 1 0 -0.4665318 0 0 1 2.974873 0 0 0 1</matrix>
+        <matrix sid="transform">1 0 0 -1.766414 0 1 0 1.10023 0 0 1 2.405079 0 0 0 1</matrix>
         <instance_light url="#Point-light"/>
       </node>
       <node id="Area" name="Area" type="NODE">
