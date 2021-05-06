@@ -453,8 +453,14 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
 	// given r1, r2, and color, draw ghost
 	
 	// Hi Ritwik!
+    
 	float shift_amt = -(r1+r2)/2 * 0.4;
-	float scale_amt = abs(r2-r1) * 0.05;
+    
+    // randomize this a bit??
+    
+    // float scale_amt = abs(r2-r1) * 0.05;
+    float alpha = ((float) rand() / RAND_MAX) * 0.2;
+	float scale_amt = abs(r2-r1) * alpha;
 	
 //	shift_amt = -50;
 //	scale_amt = 20;
@@ -487,6 +493,7 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
 	}
 	
 	// Hi Ritwik!
+    // Hi
 	float intensity_scalar = 10;
 	float size_scalar = 1/(scale_amt*scale_amt);
 	ghost_color *= intensity_scalar * size_scalar;
@@ -685,6 +692,26 @@ Vector2D trace_ray_auto_after(float r, float theta, int i, int j, std::vector<Ma
     return Vector2D(res.x, res.y);
     
 }
+    
+/*
+ generate ghost based off of 2 sensor rays
+ */
+void add_ghost(Vector2D ray1, Vector2D ray2) {
+    // first generate a random (x, y) point on line from ray1 to ray2
+    
+    // note: is float ok for this? or does it need to be double? Also scale parameter
+    // accordingly, it can be greater than 1 or less than zero
+    float alpha = ((float) rand() / RAND_MAX) + 1;
+    Vector2D new_center = ray1 + alpha * Vector2D(ray2.x - ray1.x, ray2.y - ray2.x);
+    
+    float beta = ((float) rand() / RAND_MAX) + 1 * 10;
+    
+    /*
+     Nevermind this function kinda garbage so feel free to trash it
+     */
+    
+    
+}
 
 
 // end integration
@@ -706,11 +733,14 @@ void PathTracer::generate_ghost_buffer() {
 	// additively store stuff in ghost buffer
 	
 	//test
+    std::vector<Vector2D> sensor_ray_1s;
+    std::vector<Vector2D> sensor_ray_2s;
 	
 	for (int i = 0; i < 5; i++) {
 			for (int j = i+1; j < 5; j++) {
 					Vector2D sensor_ray_1 = trace_ray_auto_before(14.5, angle_to_sun, i, j, R_red);
 					Vector2D sensor_ray_2 = trace_ray_auto_before(-14.5, angle_to_sun, i, j, R_red);
+                
 					draw_ghost("red", sensor_ray_1.x, sensor_ray_2.x);
 					sensor_ray_1 = trace_ray_auto_before(14.5, angle_to_sun, i, j, R_green);
 					sensor_ray_2 = trace_ray_auto_before(-14.5, angle_to_sun, i, j, R_green);
