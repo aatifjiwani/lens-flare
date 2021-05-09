@@ -431,16 +431,9 @@ Vector2D PathTracer::shift_vertex(float x, float y, float scale, float shift_amo
 
 // draw one ghost to ghost_buffer
 void PathTracer::draw_ghost(string color, float r1, float r2) {
-	
-	cout<< "got: " << r1 << r2 << endl;
-	
+
 	float i = ghost_buffer.w/2;
 	float j = ghost_buffer.h/2;
-	
-	//cout << axis_ray << "axis_ray" << endl;
-	//cout << angle_to_sun << "angle" << endl;
-	//cout << atan(axis_ray.y / axis_ray.x) << "atan" << endl;
-	//cout << acos(angle_to_sun) << "acos" << endl;
 	
 //	while(i<ghost_buffer.w and j < ghost_buffer.h){
 //		ghost_buffer.update_pixel_additive(test, int(i), int(j));
@@ -478,10 +471,10 @@ void PathTracer::draw_ghost(string color, float r1, float r2) {
 //	Vector2D ur = shift_vertex(gb_mid_w+100, gb_mid_h+100, scale_amt, shift_amt);
 //	Vector2D lr = shift_vertex(gb_mid_w+100, gb_mid_h-100, scale_amt, shift_amt);
 	
-  Vector2D ul = shift_vertex(-1, 1, scale_amt, -shift_amt);
-  Vector2D ll = shift_vertex(-1, -1, scale_amt, -shift_amt);
-  Vector2D ur = shift_vertex(1, 1, scale_amt, -shift_amt);
-  Vector2D lr = shift_vertex(1, -1, scale_amt, -shift_amt);
+  Vector2D ul = shift_vertex(-1, 1, scale_amt, shift_amt);
+  Vector2D ll = shift_vertex(-1, -1, scale_amt, shift_amt);
+  Vector2D ur = shift_vertex(1, 1, scale_amt, shift_amt);
+  Vector2D lr = shift_vertex(1, -1, scale_amt, shift_amt);
 	
 	// TODO: add sun point instead of midpoint
 	
@@ -722,7 +715,8 @@ void PathTracer::generate_ghost_buffer() {
 	
 	// initialize size
 	
-	cout << "sampleBuffer.w" << sampleBuffer.w << "sampleBuffer.h: "<< sampleBuffer.h;
+//	cout << "sampleBuffer.w" << sampleBuffer.w << "sampleBuffer.h: "<< sampleBuffer.h;
+  ghost_buffer.clear();
 	ghost_buffer.resize(sampleBuffer.w, sampleBuffer.h);
 	// get sun angle and axis ray
 	
@@ -820,7 +814,6 @@ void PathTracer::generate_ghost_buffer() {
 //		draw_ghost("green", r1, r2);
 //		draw_ghost("blue", r1-offset, r2-offset);
 //	}
-	
 }
 
 void PathTracer::raytrace_pixel(size_t x, size_t y) {

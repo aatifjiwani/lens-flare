@@ -84,6 +84,7 @@ void Camera::configure(const CameraInfo& info, size_t screenW, size_t screenH) {
     vFov = 2 * degrees(atan(tan(radians(hFov) / 2) / ar));
   }
   screenDist = ((double) screenH) / (2.0 * tan(radians(vFov) / 2));
+  frame_num = 0;
 }
 
 /**
@@ -137,6 +138,9 @@ void Camera::move_by(const double dx, const double dy, const double d) {
     c2w[0] * (dx * scaleFactor) + c2w[1] * (dy * scaleFactor);
   pos += displacement;
   targetPos += displacement;
+
+  cout << "moving by " << frame_num << endl;
+  frame_num += 1;
 }
 
 /**
@@ -146,6 +150,9 @@ void Camera::move_forward(const double dist) {
   double newR = min(max(r - dist, minR), maxR);
   pos = targetPos + ((pos - targetPos) * (newR / r));
   r = newR;
+
+  cout << "move forward " << frame_num << endl;
+  frame_num +=1;
 }
 
 /**
@@ -154,6 +161,7 @@ void Camera::move_forward(const double dist) {
 void Camera::rotate_by(const double dPhi, const double dTheta) {
   phi = clamp(phi + dPhi, 0.0, (double) PI);
   theta += dTheta;
+  cout << "rotating by " << frame_num << endl;
   compute_position();
 }
 
@@ -161,6 +169,15 @@ void Camera::rotate_by(const double dPhi, const double dTheta) {
  * This function computes the camera position, basis vectors, and the view matrix
  */
 void Camera::compute_position() {
+  cout << "computing position " << frame_num << endl;
+  frame_num += 1;
+
+  if (frame_num > 1) {
+    string camera_setting = "frames/frame_";
+    camera_setting.append(to_string(frame_num - 1));
+    camera_setting.append(".txt");
+    dump_settings(camera_setting);
+  }
   double sinPhi = sin(phi);
   if (sinPhi == 0) {
     phi += EPS_F;

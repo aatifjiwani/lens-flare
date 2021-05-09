@@ -178,6 +178,8 @@ class Camera {
  // camera-space point by 'pos' to perform a full camera-to-world
  // transform)
  	Matrix3x3 c2w;
+
+ 	int frame_num;
  private:
   // Computes pos, screenXDir, screenYDir from target, r, phi, theta.
   void compute_position();

@@ -303,6 +303,8 @@ void RaytracedRenderer::start_raytracing() {
   pt->bvh = bvh;
   pt->camera = camera;
   pt->scene = scene;
+  pt->flare_origins.clear();
+  pt->flare_radiance.clear();
   pt->find_sun_pos();
 	
 	// generate ghost_buffer
