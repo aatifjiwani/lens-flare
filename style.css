@@ -56,6 +56,14 @@
     text-align: center;
 }
 
+.anchor {
+    color: black;
+}
+
+.anchor:hover{
+    color: black;
+}
+
 /**
  * Reset some basic elements
  */
