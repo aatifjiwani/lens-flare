@@ -66,14 +66,48 @@
 
 <div class="report">
     <a class="anchor" name="abs" style="text-decoration: none; "><h2>Abstract</h2></a>
+
+    <p>
+        Current methods for producing lens flare distortions are scene-independent, in the sense that they render a flare distortion without regard to the camera viewpoint or position of the sun, and synthetically overlay the distortion onto a scene that had been previously rendered or captured. In one case <b>[1]</b>, part of the lens flare was physically captured which may prove to be expensive and possibly time inefficient. For this project, we set out to develop a method such that we could render physics-based lens flare distortions that fully depend on the viewpoint and the location of the light source. 
+    </p>
+
+    <p>
+        To be able to render a physics-based flare distortion, we dug deep into the science behind what causes them. To that end, we found that lens flares are composed of two pieces: a Starburst Effect and Ghost Reflections. As such, we divided our approach to focus on each component separately. 
+    </p>
+
+    <p>
+        Our implementation is based off the Project 3-1 PathTracer. Our extended code can be viewed publicly at this <a href="https://github.com/aatifjiwani/lens-flare/" target="_blank">repository</a>. 
+    </p>
+
+
     <a class="anchor" name="sea" style="text-decoration: none; "><h2>Starburst Effect - Approach</h2></a>
+
+
     <a class="anchor" name="ser" style="text-decoration: none; "><h2>Starburst Effect - Results</h2></a>
+
+
     <a class="anchor" name="gra" style="text-decoration: none; "><h2>Ghost Reflections - Approach</h2></a>
+
+
     <a class="anchor" name="grr" style="text-decoration: none; "><h2>Ghost Reflections - Results</h2></a>
+
+
     <a class="anchor" name="final" style="text-decoration: none;"><h2>Final Results</h2></a>
+
+
     <a class="anchor" name="vid" style="text-decoration: none;"><h2>Video</h2></a>
+
+
     <a class="anchor" name="ref" style="text-decoration: none;"><h2>References</h2></a>
+
+    <p>
+        <strong>[1]: </strong> Wu, Yicheng et al. “Single-Image Lens Flare Removal.” ArXiv abs/2011.12485 (2020): n. pag.
+    </p>
+
+
     <a class="anchor" name="cont" style="text-decoration: none;"><h2>Contributions</h2></a>
+
+
 </div>
 </body>
 </html>

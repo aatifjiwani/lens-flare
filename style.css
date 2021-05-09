@@ -48,12 +48,12 @@
 .report {
     padding-right: 5%;
     padding-left: 5%;
-    width: 70%;
+    width: 60%;
     max-width: calc(97% - 80px);
     margin: auto;
     font-weight: 300;
     color: #121212;
-    text-align: center;
+    text-align: left;
 }
 
 .anchor {
