@@ -1,6 +1,8 @@
 cmake-build-debug/
 .idea/
 
+*.exr
+
 # Prerequisites
 *.d
 

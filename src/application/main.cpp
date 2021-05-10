@@ -33,6 +33,7 @@ void usage(const char* binaryName) {
   printf("  -d  <FLOAT>      The focal distance\n");
   printf("  -f  <FILENAME>   Image (.png) file to save output to in windowless mode\n");
   printf("  -r  <INT> <INT>  Width and height of output image (if windowless)\n");
+  printf("  -x  <FILENAME>   Image (.png) file for aperture\n");
   printf("  -h               Print this help message\n");
   printf("\n");
 }
@@ -83,7 +84,7 @@ int main( int argc, char** argv ) {
   bool write_to_file = false;
   size_t w = 0, h = 0, x = -1, y = 0, dx = 0, dy = 0;
   string filename, cam_settings = "";
-  while ( (opt = getopt(argc, argv, "s:l:t:m:e:h:H:f:r:c:b:d:a:p:")) != -1 ) {  // for each option...
+  while ( (opt = getopt(argc, argv, "s:l:t:m:e:h:H:f:r:c:b:d:a:p:x:y:i:n:")) != -1 ) {  // for each option...
     switch ( opt ) {
     case 'f':
       write_to_file = true;
@@ -131,9 +132,23 @@ int main( int argc, char** argv ) {
       config.pathtracer_max_tolerance = atof(argv[optind]);
       optind++;
       break;
+    case 'x':
+      config.aperture_filename = string(optarg);
+      std::cout << "[Main] Found aperture function at " << config.aperture_filename << endl;
+      break;
+		case 'y':
+			config.ghost_aperture_filename = string(optarg);
+			std::cout << "[Main] Found ghost aperture function at " << config.aperture_filename << endl;
+			break;
     case 'H':
       config.pathtracer_direct_hemisphere_sample = true;
       optind--;
+      break;
+    case 'i':
+      config.pathtracer_lens_flare_intensity = atof(optarg);
+      break;
+    case 'n':
+      config.pathtracer_lens_flare_radius = atof(optarg);
       break;
     default:
       usage(argv[0]);

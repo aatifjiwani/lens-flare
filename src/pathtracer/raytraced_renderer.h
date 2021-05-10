@@ -74,7 +74,11 @@ public:
              bool direct_hemisphere_sample = false,
              string filename = "",
              double lensRadius = 0.25,
-             double focalDistance = 4.7);
+             double focalDistance = 4.7,
+             std::string aperture_filename = "",
+             double flare_radius = 20.0,
+             double intensity = 1.0,
+						 std::string ghost_aperture_filename = "");
 
   /**
    * Destructor.
@@ -217,6 +221,8 @@ public:
 
   double lensRadius;
   double focalDistance;
+  std::string aperture_filename;
+	std::string ghost_aperture_filename;
 
   // Components //
 

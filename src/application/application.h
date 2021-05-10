@@ -62,6 +62,12 @@ struct AppConfig {
     pathtracer_filename = "";
     pathtracer_lensRadius = 0.0;
     pathtracer_focalDistance = 4.7;
+
+    // Begin Lens Flare implementation
+    aperture_filename = "";
+    pathtracer_lens_flare_radius = 25.0;
+    pathtracer_lens_flare_intensity = 1;
+		ghost_aperture_filename = "";
   }
 
   size_t pathtracer_ns_aa;
@@ -84,6 +90,12 @@ struct AppConfig {
 
   double pathtracer_lensRadius;
   double pathtracer_focalDistance;
+
+  // Begin Lens Flare implementation
+  string aperture_filename;
+  double pathtracer_lens_flare_intensity;
+  double pathtracer_lens_flare_radius;
+	string ghost_aperture_filename;
 };
 
 class Application : public Renderer {

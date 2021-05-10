@@ -3,10 +3,12 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <cmath>
 
 #include "CGL/misc.h"
 #include "CGL/vector2D.h"
 #include "CGL/vector3D.h"
+#include "util/random_util.h"
 
 using std::cout;
 using std::endl;
@@ -18,6 +20,44 @@ using std::ofstream;
 namespace CGL {
 
 using Collada::CameraInfo;
+
+float CameraApertureTexture::pdf() {
+  float total_area = (float) width * height;
+  float bounding_box_area = ((float) (max_x - min_x)) * ((float) (max_y - min_y));
+
+  return bounding_box_area / total_area;
+}
+
+float CameraApertureTexture::sample_aperture(float &u, float &v) {
+  /*
+   * Sample (u,v) coordinate in the Aperture's Bounding Box
+   * Return the sampled value
+   * Set &u, &v to the sampled coordinates
+   *
+   * !! IMPORTANT: Ensure that the interval for (u) is [-0.5, 0.5] and likewise for (v)
+   * !! with (0,0) at the CENTER of the aperture
+   */
+
+  // Sample uniform in [0,1]
+  double u_sample = random_uniform();
+  double v_sample = random_uniform();
+
+  double u_coordinate = min_x + u_sample * (max_x - min_x);
+  double v_coordinate = min_y + v_sample * (max_y - min_y);
+
+  int u_pixel = (int) round(u_coordinate); // Pixel Values i.e. 250
+  int v_pixel = (int) round(v_coordinate);
+
+  float sampled_value = aperture[v_pixel * width + u_pixel];
+
+  float u_global_coord = (float) u_pixel / (float) width;
+  float v_global_coord = (float) v_pixel / (float) height;
+
+  u = u_global_coord - 0.5;
+  v = v_global_coord - 0.5;
+
+  return sampled_value;
+}
 
 /**
  * Sets the field of view to match screen screenW/H.
@@ -44,6 +84,7 @@ void Camera::configure(const CameraInfo& info, size_t screenW, size_t screenH) {
     vFov = 2 * degrees(atan(tan(radians(hFov) / 2) / ar));
   }
   screenDist = ((double) screenH) / (2.0 * tan(radians(vFov) / 2));
+  frame_num = 0;
 }
 
 /**
@@ -97,6 +138,9 @@ void Camera::move_by(const double dx, const double dy, const double d) {
     c2w[0] * (dx * scaleFactor) + c2w[1] * (dy * scaleFactor);
   pos += displacement;
   targetPos += displacement;
+
+  cout << "moving by " << frame_num << endl;
+  frame_num += 1;
 }
 
 /**
@@ -106,6 +150,9 @@ void Camera::move_forward(const double dist) {
   double newR = min(max(r - dist, minR), maxR);
   pos = targetPos + ((pos - targetPos) * (newR / r));
   r = newR;
+
+  cout << "move forward " << frame_num << endl;
+  frame_num +=1;
 }
 
 /**
@@ -114,6 +161,7 @@ void Camera::move_forward(const double dist) {
 void Camera::rotate_by(const double dPhi, const double dTheta) {
   phi = clamp(phi + dPhi, 0.0, (double) PI);
   theta += dTheta;
+  cout << "rotating by " << frame_num << endl;
   compute_position();
 }
 
@@ -121,6 +169,15 @@ void Camera::rotate_by(const double dPhi, const double dTheta) {
  * This function computes the camera position, basis vectors, and the view matrix
  */
 void Camera::compute_position() {
+  cout << "computing position " << frame_num << endl;
+  frame_num += 1;
+
+  if (frame_num > 1) {
+    string camera_setting = "frames/frame_";
+    camera_setting.append(to_string(frame_num - 1));
+    camera_setting.append(".txt");
+    dump_settings(camera_setting);
+  }
   double sinPhi = sin(phi);
   if (sinPhi == 0) {
     phi += EPS_F;
@@ -184,7 +241,8 @@ void Camera::load_settings(string filename) {
   cout << "[Camera] Loaded settings from " << filename << endl;
 }
 
-void Camera::analyze_world_coord(Vector3D& pos_world) {
+// world coordinates to screen coordinates
+void Camera::analyze_world_coord(Vector3D& pos_world, double& ns_x, double& ns_y) {
   double hFOV_rads = this->hFov * (PI / 180.0); // x
   double vFOV_rads = this->vFov * (PI / 180.0); // y
 
@@ -198,6 +256,20 @@ void Camera::analyze_world_coord(Vector3D& pos_world) {
   cout << "position of coord on image plane in camera: " << pos_image << endl;
 
   cout << "camera image plane edges x,y: " << edge_x << ", " << edge_y << endl;
+
+//  double camera_space_x = edge_x * (2 * x - 1);
+//  double camera_space_y = edge_y * (2 * y - 1);
+  /*
+   * (csx / ex) = 2x - 1
+   * (csx/ex) + 1 = 2x
+   * x = ((csx/ex)+1)/2
+   */
+
+  // Normalized Screen Coords
+  ns_x = ((pos_image.x / edge_x)+1)/2.0;
+  ns_y = ((pos_image.y / edge_y)+1)/2.0;
+
+  cout << "normalized screen space coords: (x,y) = (" << ns_x << ", " << ns_y << ")\n";
 }
 
 /**

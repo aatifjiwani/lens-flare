@@ -47,7 +47,12 @@ RaytracedRenderer::RaytracedRenderer(size_t ns_aa,
                        bool direct_hemisphere_sample,
                        string filename,
                        double lensRadius,
-                       double focalDistance) {
+                       double focalDistance,
+                       std::string aperture_filename,
+                       double flare_radius,
+                       double flare_intensity,
+											 std::string ghost_aperture_filename) {
+	
   state = INIT;
 
   pt = new PathTracer();
@@ -64,6 +69,11 @@ RaytracedRenderer::RaytracedRenderer(size_t ns_aa,
 
   this->lensRadius = lensRadius;
   this->focalDistance = focalDistance;
+  this->aperture_filename = aperture_filename;
+	this->ghost_aperture_filename = ghost_aperture_filename;
+
+  pt->flare_radius = flare_radius;
+  pt->flare_intensity = flare_intensity;
 
   this->filename = filename;
 
@@ -141,6 +151,16 @@ void RaytracedRenderer::set_camera(Camera *camera) {
   camera->focalDistance = focalDistance;
   camera->lensRadius = lensRadius;
   this->camera = camera;
+
+  // Begin Lens Flare Implementation
+  CameraApertureTexture* apertureTexture = new CameraApertureTexture();
+  apertureTexture->init(this->aperture_filename);
+	
+	CameraApertureTexture* ghostApertureTexture = new CameraApertureTexture();
+	ghostApertureTexture->init(this->ghost_aperture_filename);
+
+  this->camera->aperture_texture = apertureTexture;
+	this->camera->ghost_aperture_texture = ghostApertureTexture;
 
   if (has_valid_configuration()) {
     state = READY;
@@ -283,7 +303,13 @@ void RaytracedRenderer::start_raytracing() {
   pt->bvh = bvh;
   pt->camera = camera;
   pt->scene = scene;
+  pt->flare_origins.clear();
+  pt->flare_radiance.clear();
   pt->find_sun_pos();
+	
+	// generate ghost_buffer
+	pt->generate_ghost_buffer();
+	
 
   if (!render_cell) {
     frameBuffer.clear();

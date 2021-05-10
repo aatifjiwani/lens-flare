@@ -2,17 +2,92 @@
 #define CGL_CAMERA_H
 
 #include <iostream>
+#include <set>
 
 #include "scene/collada/camera_info.h"
 #include "CGL/matrix3x3.h"
+#include "CGL/lodepng.h"
 
 #include "math.h"
 #include "ray.h"
 
+using namespace std;
 
 namespace CGL {
 
-/**
+struct CameraApertureTexture {
+    size_t width;
+    size_t height;
+    std::vector<float> aperture; // values of pixels
+    double total_value;
+
+    // Bounding Box
+    int min_x, min_y, max_x, max_y;
+    void init(std::string aperture_filename) {
+      width = 0;
+      height = 0;
+
+      /*
+       * Process the pixels, capture values (need to experiment with the values it should take)
+       */
+      const char* file = aperture_filename.c_str();
+      string absolute_path = resolve_path(file);
+
+      vector<unsigned char> texels;
+      unsigned int width, height;
+
+      int response = lodepng::decode(texels, width, height, absolute_path);
+      if (response) {
+        cout << "UNABLE TO LOAD APERTURE FUNCTION" << endl;
+      } else {
+        cout << "Loaded Aperture Function with (W, H): (" << width << ", " << height << ")\n";
+      }
+
+      this->width = width;
+      this->height = height;
+      aperture.reserve(width * height);
+
+      // Only Capture the Red Channel (Aperture Function is in Grayscale)
+      cout << "Number of Pixels to Process: " << texels.size() << endl;
+
+      // Channel = 0
+      min_x = min_y = width;
+      max_x = max_y = -1;
+      total_value = 0.0;
+      for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+          unsigned char curr_texel = texels[4 * (y * width + x)];
+          Color curr_color = Color(&curr_texel);
+          aperture.push_back(curr_color.r);
+          total_value += curr_color.r;
+
+          if (curr_color.r > 0) {
+            min_x = min(x, min_x);
+            min_y = min(y, min_y);
+
+            max_x = max(x, max_x);
+            max_y = max(y, max_y);
+          }
+        }
+      }
+
+      cout << "Bounding Box (x1,y1) - (x2,y2): (" << min_x << ", " << min_y
+        << ") - (" << max_x << ", " << max_y << ")\n";
+
+      // Debug Stuff
+      set<float, greater<float>> unique(aperture.begin(), aperture.end());
+      for (auto uitr = unique.begin(); uitr != unique.end(); uitr++) {
+        cout << "Found unique value: " << *uitr << endl;
+      }
+
+    }
+
+    float sample_aperture(float& u, float& v);
+    float pdf();
+
+};
+
+    /**
  * Camera.
  */
 class Camera {
@@ -76,7 +151,7 @@ class Camera {
   virtual void dump_settings(std::string filename);
   virtual void load_settings(std::string filename);
 
-  void analyze_world_coord(Vector3D& pos_world);
+  void analyze_world_coord(Vector3D& pos_world, double& ns_x, double& ns_y);
 
   /**
    * Returns a world-space ray from the camera that corresponds to a
@@ -95,7 +170,16 @@ class Camera {
   // Lens aperture and focal distance for depth of field effects.
   double lensRadius;
   double focalDistance;
+  CameraApertureTexture* aperture_texture;
+//  CameraLensStructure* ...
+	CameraApertureTexture* ghost_aperture_texture;
+	
+	// camera-to-world rotation matrix (note: also need to translate a
+ // camera-space point by 'pos' to perform a full camera-to-world
+ // transform)
+ 	Matrix3x3 c2w;
 
+ 	int frame_num;
  private:
   // Computes pos, screenXDir, screenYDir from target, r, phi, theta.
   void compute_position();
@@ -108,11 +192,6 @@ class Camera {
 
   // Orientation relative to target, and min & max distance from the target.
   double phi, theta, r, minR, maxR;
-
-  // camera-to-world rotation matrix (note: also need to translate a
-  // camera-space point by 'pos' to perform a full camera-to-world
-  // transform)
-  Matrix3x3 c2w;
 
   // Info about screen to render to; it corresponds to the camera's full field
   // of view at some distance.

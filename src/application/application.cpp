@@ -34,7 +34,11 @@ Application::Application(AppConfig config, bool gl) {
     config.pathtracer_direct_hemisphere_sample,
     config.pathtracer_filename,
     config.pathtracer_lensRadius,
-    config.pathtracer_focalDistance
+    config.pathtracer_focalDistance,
+    config.aperture_filename,
+    config.pathtracer_lens_flare_radius,
+    config.pathtracer_lens_flare_intensity,
+		config.ghost_aperture_filename
   );
   filename = config.pathtracer_filename;
 }
@@ -422,6 +426,8 @@ void Application::mouse_event(int key, int event, unsigned char mods) {
 }
 
 void Application::keyboard_event(int key, int event, unsigned char mods) {
+  cout << "keyboard" << mode << endl;
+  cout << VISUALIZE_MODE << endl;
   switch (mode) {
     case RENDER_MODE:
       if (event == EVENT_PRESS) {
@@ -465,6 +471,7 @@ void Application::keyboard_event(int key, int event, unsigned char mods) {
       break;
     case VISUALIZE_MODE:
       if (event == EVENT_PRESS) {
+        cout << key << endl;
         switch(key) {
           case 'e': case 'E':
             to_edit_mode();
@@ -473,6 +480,13 @@ void Application::keyboard_event(int key, int event, unsigned char mods) {
             renderer->stop();
             renderer->start_raytracing();
             mode = RENDER_MODE;
+            break;
+          case 'q': case 'Q':
+            cout << "tried" << endl;
+            mouse1_dragged(1.0, 0);
+            break;
+          case 'w': case 'W':
+            mouse1_dragged(-1.0, 0);
             break;
           case ' ':
             reset_camera();
@@ -593,6 +607,8 @@ void Application::mouse1_dragged(float x, float y) {
   }
   float dx = (x - mouseX);
   float dy = (y - mouseY);
+
+  cout << "dx, dy: " << dx << ", " << dy << endl;
 
   if (mode == EDIT_MODE && scene->has_selection()) {
     scene->drag_selection(2 * dx / screenW, 2 * -dy / screenH,
