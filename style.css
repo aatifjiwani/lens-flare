@@ -64,6 +64,14 @@
     color: black;
 }
 
+.submodule {
+    width: 100%;
+    float: left;
+    display: block;
+    margin-bottom: 10px;
+    word-wrap: break-word;
+}
+
 /**
  * Reset some basic elements
  */
