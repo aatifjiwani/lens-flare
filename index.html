@@ -82,6 +82,40 @@
 
     <a class="anchor" name="sea" style="text-decoration: none; "><h2>Starburst Effect - Approach</h2></a>
 
+    <h3>Background</h3>
+
+    <p>
+        When nearby waves of light diffract through small apertures, the diffraction pattern that appears on an observation plane is usually modeled by the <a href="">Fresnel diffraction equation</a>. However, for waves that originate especially from far-field light sources, like the sun, produce diffraction patterns that are modeled closely by the <a href="">Fraunhofer diffraction equation</a>: 
+    </p>
+
+    <div align="middle" style="margin-bottom: 10px;">
+
+        <img src="media/fraunhofer.png">
+        <img src="media/diffraction_plot.png">
+        <br>
+        <figcaption>Fraunhofer Diffraction</figcaption>
+    </div>
+
+    <p>
+        The Fraunhaufer Diffraction Equation states that for a point $I = (x, y, z)$ on the observation plane, the complex magnitude of a diffracted wave with wavelength $\lambda$ is approximated by the complex integral over all points on the aperture plane $A$. Note that $k$ is the wavenumber, where $k = \frac{2\pi}{\lambda}$. 
+        With knowledge of Fourier processing, the Fraunhofer diffraction equation can be equated to a <b>two-dimensional continuous-time Fourier transform</b>. However, since
+        we intended on approximating the diffraction patterns of far-field light within a path tracing engine, performing a continuous 2D integral is intractable. Therefore, for our implementation, while we ray trace a pixel we simulateneously perform Monte Carlo integration over discrete samples of an aperture function $A(x', y')$ and render the diffraction pattern to the screen. 
+    </p>
+
+    <p>
+        Before we further discuss the actual implementation, it is crucial to note how we adjust the lens flare based on the scene. The raw Fraunhofer diffraction equation, and thus the 2D Fourier transform, fails to account for the direction of the light waves as it hits the aperture plane. As a result, the lens flare would always situated at the origin of the rendered image. Based on properties of Fourier processing, we found that if we additionally modulate the aperture function $A(x', y')$ by $e^{j2\pi (x'u + y'v)}$ , where $(u,v)$ of offsets, then we can properly shift the lens flare based on where the sun is in the scene. This will be further discussed in the implementation.
+    </p>
+
+    <div align="middle" style="margin-bottom: 20px;">
+
+        <img src="media/lensflare_centered.png">
+        <img src="media/lensflare_adjusted.png">
+        <br><br>
+        <figcaption><b>Left:</b> Sample flare using the raw diffraction equation. <b>Right: </b>Same flare, but $A'(x', y') = A(x', y')e^{j2\pi (50x'-50y')}$</figcaption>
+    </div>
+
+    <h3>Path Tracer Implementation</h3>
+
 
     <a class="anchor" name="ser" style="text-decoration: none; "><h2>Starburst Effect - Results</h2></a>
 
@@ -111,7 +145,7 @@
     <p>
         <strong>[3]: </strong>Sangmin Lee and Sungkil Lee. 2016. Interactive additive diffraction synthesis.<br>In Proceedings of the 37th Annual Conference of the European Association for Computer Graphics: Posters (EG '16). Eurographics Association, Goslar, DEU, 11–12.
     </p>
-    
+
 
 
     <a class="anchor" name="cont" style="text-decoration: none;"><h2>Contributions</h2></a>
