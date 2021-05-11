@@ -601,4 +601,28 @@
      color: #008080; }
    .highlight .il {
      color: #099; }
- 
+
+.center {
+  text-align: center;
+}
+
+.center ul {
+  display: inline-block;
+  text-align: left;
+}
+
+.starburst-results {
+  display: inline-flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.starburst-results img {
+  width: 150px;
+  height: 150px;
+  margin-bottom: 0.2rem;
+}
+
+.starburst-results img:last-child {
+  margin-bottom: 0;
+}
