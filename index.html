@@ -283,7 +283,10 @@
         Ghosts are caused by internal reflections between a camera’s lenses. In particular, given two lenses, all of the rays that bounce from one lens to the other once will form a ghost. More specifically, the ray will travel forwards, reflect off of lens $j$ backwards, and finally reflect off lens $i$ forwards, where $i < j$. The ghost more or less looks like the shape of the aperture.
     </p>
 
-    ADD IMAGE HERE
+    <div class="center" style="margin-bottom:1rem">
+        <img src="media/ghost_diagrams1.png">
+    </div>
+    
 
     <p>
         We first tried implementing the approaching in [2]. They used a fractional fourier transform and nonlinear transformations among other things, and did not specify a lot of key parameters. We found existing implementations and tried applying them to aperture images to create ghosts, but the results were unsuccessful, so we ended up doing the following approach with raytracing.
@@ -302,11 +305,19 @@
         We used an entrance pupil size of 14.5. To get the lowest point that the rays corresponding to one ghost hit the aperture, we traced the ray $( r= 14.5, sun_angle)$ onto the sensor plane. To get the highest point, we traced the ray $(r = -14.5, sun_angle).$ 
     </p>
 
-    ADD 2 IMAGES HERE
+    <div class="center" style="margin-bottom:1rem">
+        <img src="media/ghost_diagrams2.png">
+        <img src="media/ghost_diagrams3.png">
+    </div>
+    
 
     <p>
         Given the curvature/radius and index of refraction for each lens, we can define matrices for translating, refracting, and reflecting. To figure out where an incoming ray lands on the sensor plane, we multiply a vector by a series of these matrices for each lens like the one in the image below. We implemented this raytracing in python first to make sure the values looked appropriate.
     </p>
+
+    <div class="center" style="margin-bottom:1rem">
+        <img src="media/ghost_diagrams4.png">
+    </div>
 
     <h3>Forming the image</h3>
 
@@ -317,6 +328,11 @@
     <p>
         To get one ghost, we trace the ray with $r = 14.5$ and $r = -14.5$ as mentioned before. The rays arrive at the sensor plane with $r=r1$ and $r=r2$ respectively. As you can see from the image, $r1$ and $r2$ are the distance from the sun along the axis I just mentioned. The size of the ghost is $|r2-r1|$.
     </p>
+
+    <div class="center" style="margin-bottom:1rem">
+        <img src="media/ghost_diagrams_reference.png">
+    </div>
+    
 
     <p>
         It took us hours of dissecting the paper [4] to realize this. They did not make it obvious how they were translating from 1D to 2D. 
@@ -332,13 +348,40 @@
     
     <p>For ray tracing, when the ray hit the aperture plane, we had to check whether the ray was within the radius of the aperture. If not, it would not go through the aperture opening, and was “blocked”. We had to recast the ray using an equation from the paper in order to find the new starting radius. With this radius and the same angle, the ray would hit the aperture plane at exactly the maximum radius, or the edge. We were supposed to scale the brightness of these ghosts since less light hit the sensor plane, but we did not have enough time.</p>
     
-    ADD AN IMAGE
+    <div class="center" style="margin-bottom:1rem">
+        <img src="media/ghost_diagrams5.png">
+    </div>
+    
 
     <p>We also ensured that a ghost’s transparency scales with its size.</p>
 
     <p>Finally, different wavelengths of light refract differently through the camera. This is why we see different colored ghosts in real lens flare images as well as red and blue shifts on either side of the ghosts. To implement this, we looked up indices of refraction for each lens for green, red, and blue wavelengths. We raytraced each color through matrices with the correct indices of refraction to figure out where a ghost of that color would land and then colored the ghosts accordingly.</p>
 
     <a class="anchor" name="grr" style="text-decoration: none; "><h2>Ghost Reflections - Results</h2></a>
+
+    <p>Here are a few renders of naked ghosts from different angles, without raytracing the scene itself or the starburst.</p>
+
+    <div align="middle">
+        <table style="width: 100%">
+          <tr >
+              <td align="middle"><img src="media/naked_ghost1.png" align="middle" width="505px" /></td>
+            <td align="middle"><img src="media/naked_ghost2.png" align="middle" width="480px" /></td>
+            <td align="middle"><img src="media/naked_ghost3.png" align="middle" width="480px" /></td>
+          </tr>
+        </table>
+      </div>
+
+      <p>Here are a couple renders showing the red and blue shift for the ghosts corresponding to the different wavelengths.</p>
+
+      <div align="middle">
+        <table style="width: 100%">
+          <tr >
+            <td align="middle"><img src="media/ghost_redshift.png" align="middle" width="480px" /></td>
+            <td align="middle"><img src="media/ghost_blueshift.png" align="middle" width="404px" /></td>
+          </tr>
+        </table>
+      </div>
+
 
 
     <a class="anchor" name="final" style="text-decoration: none;"><h2>Final Results</h2></a>
