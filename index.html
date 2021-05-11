@@ -122,27 +122,47 @@
 
     <div class="submodule">
         <img src="media/starburst_1.png" width="300px" style="float: left; margin-right: 20px;"/>
-        <div class="subcontent" style="float: left;">
+        <div class="subcontent" style="float: left; width: calc(100% - 350px);">
             <h3>1. Calculate the sun's position on the screen: </h3>
-            <p>Content</p>
+            <p>When the user inputs the COLLADA scene, we first check if there exists any directional lights. If there are, we perform the following for each and store their radiance: </p>
+            <ul>
+                <li>Given the directional light $D$ with direction $(u, v, w)$ in world-coordinates, we first convert the direction to camera-space: $D_C = R^T(D-T)$</li>
+                <li>Calculate the sun's position on the image plane by extending the camera-space direction until it hits the $z = -1$ plane.</li>
+                <li>Use the camera's $hFoV$ and $vFoV$ to calculate the <b>normalized screen-space</b> coordinates of the directional light.</li>
+            </ul>
         </div>
     </div>
 
     <div class="submodule">
         <div class="subcontent" style="float: left; width: 80%">
             <h3>2. Load in the Aperture function as a texture: </h3>
-            <p>Content Content Content Content ContentContentContentContentContentContentContentContentContentContentContentContentContentContentContentContentContentContentContentContentContentContentContentContentContentContentContentContentContentContentContentContent</p>
+            <p>As discussed above, the Starburst Effect inherently depends on the aperture function $A(x,y)$. However, to make this a tractable process, we can model the aperture function as a gray-scale image, where each pixel represents how much light will diffract if it hits that point on the aperture. Since the function is an image, we treat the aperture function $A(x,y)$ as a texture parameterized by coordinates $(u,v)$. To ensure we take only meaninful samples in the next section, we also calculate the bounding box of the non-zero region of the aperture function. </p>
         </div>
         <img src="media/pentf16.jpg" width="200px" style="float: left; margin-left: 20px;"/>
     </div>
 
     <div class="submodule">
         <img src="media/starburst_2.png" width="500px" style="float: left; margin-right: 20px;"/>
-        <div class="subcontent" style="float: left;">
+        <div class="subcontent" style="float: left; width: calc(100% - 550px);">
             <h3>3. Perform Monte Carlo integration for each screen pixel: </h3>
-            <p>Content</p>
+            <p>The ray-tracing procedure operates on a per-pixel basis, so to that end we compute the Starburst Effect per-pixel after the scene has been traced.
+                We compute the starburst effect for each pixel $(x,y)$ as follows:
+            </p>
+            <ul>
+                <li>Sample points $(u,v)$ on the aperture function.</li>
+                <li>Complex modulate the sampled values by $e^{j2\pi(ux'+vy')}$ where $(x',y')$ are the screen-space offset of the lens flare. The offset is computed in Part 1.</li>
+                <li>Perform Monte Carlo integration by taking the average of $A(u,v)e^{j2\pi(ux'+vy')}e^{-jk(ux + vy)}$ for all samples $(u,v)$</li>
+                <li>The final result is the complex intensity of light that reaches pixel $(x,y)$. We take the real magnitude of the intensity, and scale it by the 
+                    directional light's radiance to set the color of the pixel. 
+                </li>
+            </ul>
         </div>
     </div>
+
+    <p>
+        As a small implementation note, we added the ability to tune the size of the flare's inner radius and the overall intensity of the starburst. By tuning these parameters,
+        we can effectively enhance the artistic nature of the lens flare. 
+    </p>
 
     <a class="anchor" name="ser" style="text-decoration: none; "><h2>Starburst Effect - Results</h2></a>
 
