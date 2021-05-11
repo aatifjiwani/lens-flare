@@ -235,6 +235,64 @@
 
     <a class="anchor" name="gra" style="text-decoration: none; "><h2>Ghost Reflections - Approach</h2></a>
 
+    <p>
+        Ghosts are caused by internal reflections between a camera’s lenses. In particular, given two lenses, all of the rays that bounce from one lens to the other once will form a ghost. More specifically, the ray will travel forwards, reflect off of lens $j$ backwards, and finally reflect off lens $i$ forwards, where $i < j$. The ghost more or less looks like the shape of the aperture.
+    </p>
+
+    ADD IMAGE HERE
+
+    <p>
+        We first tried implementing the approaching in [2]. They used a fractional fourier transform and nonlinear transformations among other things, and did not specify a lot of key parameters. We found existing implementations and tried applying them to aperture images to create ghosts, but the results were unsuccessful, so we ended up doing the following approach with raytracing.
+    </p>
+
+    <h3>Raytracing</h3>
+
+    <p>To find the position and size of each ghost, we did one dimensional ray tracing through the camera. Each ray is defined by 1) distance from the optical axis and 2) angle that rays hit the camera. Each is encoded as a 2D Vector. 
+    </p>
+
+    <p>
+        Rays originate at the camera’s entrance, and we then use a series of matrix multiplications to determine where the ray will hit the sensor plane. The rays corresponding to a ghost will come in at the angle at which the sun hits the camera. This is the same for all rays from the sun since the sun is a far-field directional light.
+    </p>
+
+    <p>
+        We used an entrance pupil size of 14.5. To get the lowest point that the rays corresponding to one ghost hit the aperture, we traced the ray $( r= 14.5, sun_angle)$ onto the sensor plane. To get the highest point, we traced the ray $(r = -14.5, sun_angle).$ 
+    </p>
+
+    ADD 2 IMAGES HERE
+
+    <p>
+        Given the curvature/radius and index of refraction for each lens, we can define matrices for translating, refracting, and reflecting. To figure out where an incoming ray lands on the sensor plane, we multiply a vector by a series of these matrices for each lens like the one in the image below. We implemented this raytracing in python first to make sure the values looked appropriate.
+    </p>
+
+    <h3>Forming the image</h3>
+
+    <p>
+        Ghosts are drawn on the axis from the sun to the center of the screen, and they are rotated to line up with the axis.
+    </p>
+
+    <p>
+        To get one ghost, we trace the ray with $r = 14.5$ and $r = -14.5$ as mentioned before. The rays arrive at the sensor plane with $r=r1$ and $r=r2$ respectively. As you can see from the image, $r1$ and $r2$ are the distance from the sun along the axis I just mentioned. The size of the ghost is $|r2-r1|$.
+    </p>
+
+    <p>
+        It took us hours of dissecting the paper [4] to realize this. They did not make it obvious how they were translating from 1D to 2D. 
+    </p>
+
+    <h3>C++ Implementation</h3>
+    <p>First, we wrote functions to trace rays through the three lens transformations. Then, we wrote a draw_ghost(r1, r2, color) function that we called each time. We wrote a function to rotate, shift, and scale each ghost with respect to the sun. To get the sun angle, using the sun position we could find axis ray = <sun.x, sun.y> and sun_angle = atan2((axis_ray.y-0.5), (axis_ray.x-0.5)).</p>
+    
+    <p>For the aperture image, we read in a picture of a pentagon, and converted it into an array of pixels that acted as a texture map. We then reused code from project 1 to draw two textured triangles for each ghost to the framebuffer.</p>
+    
+    <h3>Additional Components</h3>
+    <p>We wanted the ghosts to be added on top of the scene and stacked on top of each other, so we drew them to a “ghost_buffer” first and changed some path tracer logic.</p>
+    
+    <p>For ray tracing, when the ray hit the aperture plane, we had to check whether the ray was within the radius of the aperture. If not, it would not go through the aperture opening, and was “blocked”. We had to recast the ray using an equation from the paper in order to find the new starting radius. With this radius and the same angle, the ray would hit the aperture plane at exactly the maximum radius, or the edge. We were supposed to scale the brightness of these ghosts since less light hit the sensor plane, but we did not have enough time.</p>
+    
+    ADD AN IMAGE
+
+    <p>We also ensured that a ghost’s transparency scales with its size.</p>
+
+    <p>Finally, different wavelengths of light refract differently through the camera. This is why we see different colored ghosts in real lens flare images as well as red and blue shifts on either side of the ghosts. To implement this, we looked up indices of refraction for each lens for green, red, and blue wavelengths. We raytraced each color through matrices with the correct indices of refraction to figure out where a ghost of that color would land and then colored the ghosts accordingly.</p>
 
     <a class="anchor" name="grr" style="text-decoration: none; "><h2>Ghost Reflections - Results</h2></a>
 
@@ -273,6 +331,9 @@
         <strong>[3]: </strong>Sangmin Lee and Sungkil Lee. 2016. Interactive additive diffraction synthesis.<br>In Proceedings of the 37th Annual Conference of the European Association for Computer Graphics: Posters (EG '16). Eurographics Association, Goslar, DEU, 11–12.
     </p>
 
+    <p>
+        <strong>[4]: </strong>Sungkil Lee and Elmar Eisemann. 2013. Practical Real-Time Lens-Flare Rendering .<br>Eurographics Symposium on Rendering, Volume 32 (2013), Number 4.
+    </p>
 
 
     <a class="anchor" name="cont" style="text-decoration: none;"><h2>Contributions</h2></a>
