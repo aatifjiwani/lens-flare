@@ -181,13 +181,13 @@
 
     <p>These components in tandem work to simulate a dirty lens and create an accurate depiction of a lens flare for a given scene.</p>
 
-    <h3>Results</h3>
+    <h3>Deconstruction</h3>
 
     <p>
         Below, the primary pupil is held constant while the effects of varying dots and lines are tested. We discovered that the presence and sizes of dots corresponded to radial artifacts that we see in the second from the left lens flare (on the bottom) which are not present in the plain one. These can lead to various subtle rings that appear toward the middle of lens flares. Additionally, lines corresponded to the 'rays' that appear to shoot out of the center of the starburst, with the slopes affecting the positions of these rays. Dots and lines as seen below simulate microscopic dust and scratches on the glass which significantly alter the diffraction of light.
     </p>
 
-    <div class="center">
+    <div class="center" style="margin-bottom:1rem">
         <div class="starburst-results">
             <img src="media/aperture_normal.png">
             <img src="media/aperture_normal.out.png">
@@ -210,7 +210,7 @@
         After settling on varying slopes of lines as the primary contributor to realistic looking lens flares in the above trials, we then experimented with varying pupil size and shape. A pentagon shaped pupil ended up creating interesting looking flares with stronger orbs in the center and subtle patterns in the diffracted light seen below. But most importantly, the size of the pupil contributed significantly to the character and emphasized components of the output flares. Smaller central pupils led to more intense and unique lens flares, while larger apertures led to fairly dim patterns that get washed out in scenes. The smallest sizes of pupils we tried ended up looking fairly unnatural; the sweet spot is probably somewhere between the second and third aperture functions below.
     </p>
 
-    <div class="center">
+    <div class="center" style="margin-bottom:1rem">
         <div class="starburst-results">
             <img src="media/pentf8.jpg">
             <img src="media/pentf8_starburst.jpg">
@@ -231,6 +231,50 @@
 
     <p>
         The results seen above make sense since camera lenses tend to be quite small compared to the size of images they capture. The largest pupils don't produce very strong lens flares, probably because disturbances in the diffraction caused by the 'dirty' components are minimal compared to the amount of light taken in. When the pupil shrinks in relation to the scene and thus the image, the diffraction is more pronounced, and the artifacts we expect to see intensify.
+    </p>
+
+    <h3>Results</h3>
+
+    <p>
+        Putting it all together, here are some scenes rendered with various aperture functions. On the left is the Blender scene with a directional light source.
+    </p>
+
+    <h4 style="text-decoration: underline;">Dragon</h4>
+    <div class="center starburst-renders">
+        <img src="media/dragon_blender.png" height="200" style="margin-bottom: 1rem;">
+        <div class="starburst-results bigger">
+            <img src="media/bbg_psmll.png">
+            <img src="media/dragon_psmll.png">
+        </div>
+        <div class="starburst-results bigger">
+            <img src="media/bbg_p4_15.png">
+            <img src="media/dragon_p4_15.png">
+        </div>
+        <div class="starburst-results bigger">
+            <img src="media/bbg_p500_14.png">
+            <img src="media/dragon_p500_14.png">
+        </div>
+    </div>
+
+    <p>
+        The starburst on the far left is rendered with the smallest aperture function and more lines with similar slopes, leading to the wider gaps between the groups of rays seen in the flare. The middle starburst is created with a slightly larger pupil and a more even distribution of slopes of lines. The last flare is rendered with the largest pupil, leading to the faint pattern which is hard to differentiate from a typical point light source.
+    </p>
+
+    <h4 style="text-decoration: underline;">Pyramids</h4>
+    <div class="center starburst-renders">
+        <img src="media/pyramid_blender.png" height="200" style="margin-bottom: 1rem;">
+        <div class="starburst-results bigger">
+            <img src="media/bbg_psmll.png">
+            <img src="media/pyramid_pentsmll.png">
+        </div>
+        <div class="starburst-results bigger">
+            <img src="media/bbg_p500_14.png">
+            <img src="media/pyramid_p500_14.png">
+        </div>
+    </div>
+
+    <p>
+        In the above scenes, we only render the pyramids with the extremes: an aperture function with a small pupil (on the left) and a large pupil (on the right). The difference is much more apparent than in the dragon scene due to the scenes' different environments. Needless to say, the aperture function used on the left is impressively photorealistic compared to the others.
     </p>
 
     <a class="anchor" name="gra" style="text-decoration: none; "><h2>Ghost Reflections - Approach</h2></a>
@@ -312,6 +356,11 @@
     <h3>Final Animation</h3>
 
     <p>Some Content</p>
+
+    <video width="400" controls style="margin: 0 auto; width: 400px;">
+        <source src="media/animation.mp4" type="video/mp4">
+        Your browser does not support HTML video.
+    </video>
 
 
     <a class="anchor" name="vid" style="text-decoration: none;"><h2>Video</h2></a>

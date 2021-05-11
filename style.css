@@ -614,15 +614,29 @@
 .starburst-results {
   display: inline-flex;
   flex-direction: column;
-  margin-bottom: 1rem;
 }
 
 .starburst-results img {
   width: 150px;
   height: 150px;
-  margin-bottom: 0.2rem;
+  margin-bottom: 4px;
+}
+
+.starburst-results.bigger img {
+  width: 220px;
+  height: 220px;
+  margin-bottom: 20px;
+  margin-left: 20px;
 }
 
 .starburst-results img:last-child {
   margin-bottom: 0;
+}
+
+.starburst-renders {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2rem;
 }
