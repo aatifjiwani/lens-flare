@@ -357,26 +357,37 @@
 
         <h3>Problems Encountered and Lessons Learned</h3>
         <ul>
-            <li>One of the very first problems we encountered was with Mitsuba2. The ray-tracing engine is open-source and thus has a LOT of features. Since we had approximately
-                3 weeks to get proper results, we felt it was not worth the overhead of learning about the vast expanse of Mitsuba2's code. Since we were already familiar with the
-                PathTracer program, it only took a day or two to dig through the code and find the best way to add our implementation within. 
+            <li>One of the very first problems we encountered was with Mitsuba2. The ray-tracing engine is open-source
+                and thus has a LOT of features. Since we had approximately
+                3 weeks to get proper results, we felt it was not worth the overhead of learning about the vast expanse
+                of Mitsuba2's code. Since we were already familiar with the
+                PathTracer program, it only took a day or two to dig through the code and find the best way to add our
+                implementation within.
             </li>
             <li>
-                A <b>huge</b> portion of implementing the starburst effect went into research. The literature we read covers the diffraction at a very high level,
-            and only describes how they use a "Fourier Transform". However, it wasn't clear exactly how they were using signal processing and why. Therefore, we spent a 
-            good couple days doing research and found that the starburst effect is the diffraction pattern from "far-field light". This led us to the Fraunhofer Diffraction Equation
-            and thus MC integration.
+                A <b>huge</b> portion of implementing the starburst effect went into research. The literature we read
+                covers the diffraction at a very high level,
+                and only describes how they use a "Fourier Transform". However, it wasn't clear exactly how they were
+                using signal processing and why. Therefore, we spent a
+                good couple days doing research and found that the starburst effect is the diffraction pattern from
+                "far-field light". This led us to the Fraunhofer Diffraction Equation
+                and thus MC integration.
             </li>
             <li>
-                During implementation, we found that by performing Monte Carlo Integration, we were still getting the periodic effects of a Fourier Transform. If the directional light
-                was placed near any corner, then we would see the cutoff portions reappear on the other side of the image. This is to be expected as the nature of the math causes 
-                periodicity. To resolve this issue, we added custom module that would (abstractly) attenuate the flare quadratically once it reached the bounds of the aperture function centered
-                around the lens flare. 
+                During implementation, we found that by performing Monte Carlo Integration, we were still getting the
+                periodic effects of a Fourier Transform. If the directional light
+                was placed near any corner, then we would see the cutoff portions reappear on the other side of the
+                image. This is to be expected as the nature of the math causes
+                periodicity. To resolve this issue, we added custom module that would (abstractly) attenuate the flare
+                quadratically once it reached the bounds of the aperture function centered
+                around the lens flare.
             </li>
             <li>
-                When we started this portion, we had no idea what kind of outside information we needed. By executing the research and implementation, we learned a lot about 
-                how graphics and signal processing go hand-in-hand. Looking back, this makes sense because graphics relies on computer vision, and computer vision is rooted from signal 
-                processing. 
+                When we started this portion, we had no idea what kind of outside information we needed. By executing
+                the research and implementation, we learned a lot about
+                how graphics and signal processing go hand-in-hand. Looking back, this makes sense because graphics
+                relies on computer vision, and computer vision is rooted from signal
+                processing.
             </li>
         </ul>
 
@@ -631,37 +642,54 @@
         </a>
 
         <p>
-            This project was easily divisible into two halves given the nature of lens flares: Aatif and Noah worked on rendering the starburst effect while Cassandra and Ritwik worked on the ghost reflection renders. Everyone helped with initial brainstorming and the creation of the report.
+            This project was easily divisible into two halves given the nature of lens flares: Aatif and Noah worked on
+            rendering the starburst effect while Cassandra and Ritwik worked on the ghost reflection renders. Everyone
+            helped with initial brainstorming and the creation of the report.
         </p>
 
         <h3>Noah Saso</h3>
         <ul>
-            <li>Deconstructed the aperture function into its various components, experimenting with the resulting artifacts of the lens flares. This was necessary to design aperture functions that produce photorealistic flares.</li>
-            <li>Implemented environment map lighting to produce interesting renders and simulate a scene that highlights the addition of a lens flare.</li>
-            <li>Implemented the phase shift equations which position the lens flare according to the light source present in each scene.</li>
+            <li>Deconstructed the aperture function into its various components, experimenting with the resulting
+                artifacts of the lens flares. This was necessary to design aperture functions that produce
+                photorealistic flares.</li>
+            <li>Implemented environment map lighting to produce interesting renders and simulate a scene that highlights
+                the addition of a lens flare.</li>
+            <li>Implemented the phase shift equations which position the lens flare according to the light source
+                present in each scene.</li>
         </ul>
 
         <h3>Cassandra Melax</h3>
         <ul>
-            <li></li>
-            <li></li>
-            <li></li>
+            <li>Wrote and debugged code for tracing rays of different wavelengths through camera in python.
+            </li>
+            <li>Designed and wrote most of the pathtracer code, including, shifting and scaling ghosts by tuned
+                parameters, ghost
+                transparency, chromatic aberrations, getting sun angle and axis, and
+                drawing ghosts
+                to the frame buffer from a texture map. (With Aatif's debugging help!)</li>
         </ul>
 
         <h3>Aatif Jiwani</h3>
         <ul>
-            <li>Performed research into the hard science behind the lens flare to find the existence of the Fraunhofer Diffraction equation. This allowed us to rethink the implementation
-                as a Monte Carlo method. 
+            <li>Performed research into the hard science behind the lens flare to find the existence of the Fraunhofer
+                Diffraction equation. This allowed us to rethink the implementation
+                as a Monte Carlo method.
             </li>
-            <li>Modified the PathTracer backend architecture to accept and parse aperture functions, calculate the lens flare screen position, and made the implementation for Monte Carlo integration of the starburst effect.</li>
-            <li>Created the parameterized styling of the lens flare where it attenuates at far distances and intensifies the inner core up to a certain radius. </li>
+            <li>Modified the PathTracer backend architecture to accept and parse aperture functions, calculate the lens
+                flare screen position, and made the implementation for Monte Carlo integration of the starburst effect.
+            </li>
+            <li>Created the parameterized styling of the lens flare where it attenuates at far distances and intensifies
+                the inner core up to a certain radius. </li>
         </ul>
 
         <h3>Ritwik Dixit</h3>
         <ul>
-            <li>Investigated Fractional Fourier transforms in Jupyter notebooks prior to shifting to the second approach. </li>
-            <li>Wrote generalized automatic ghost positioning algorithm, which calculated positions of ghosts for all pairs of lenses.</li>
-            <li>Converted experiments for ghost positioning from Jupyter notebooks to C++ code with CGL and integrated with Pathtracer code.</li>
+            <li>Investigated Fractional Fourier transforms in Jupyter notebooks prior to shifting to the second
+                approach. </li>
+            <li>Wrote generalized automatic ghost positioning algorithm, which calculated positions of ghosts for all
+                pairs of lenses.</li>
+            <li>Converted experiments for ghost positioning from Jupyter notebooks to C++ code with CGL and integrated
+                with Pathtracer code.</li>
         </ul>
 
         <br>
