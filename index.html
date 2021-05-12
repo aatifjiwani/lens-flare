@@ -355,6 +355,31 @@
             impressively photorealistic compared to the others.
         </p>
 
+        <h3>Problems Encountered and Lessons Learned</h3>
+        <ul>
+            <li>One of the very first problems we encountered was with Mitsuba2. The ray-tracing engine is open-source and thus has a LOT of features. Since we had approximately
+                3 weeks to get proper results, we felt it was not worth the overhead of learning about the vast expanse of Mitsuba2's code. Since we were already familiar with the
+                PathTracer program, it only took a day or two to dig through the code and find the best way to add our implementation within. 
+            </li>
+            <li>
+                A <b>huge</b> portion of implementing the starburst effect went into research. The literature we read covers the diffraction at a very high level,
+            and only describes how they use a "Fourier Transform". However, it wasn't clear exactly how they were using signal processing and why. Therefore, we spent a 
+            good couple days doing research and found that the starburst effect is the diffraction pattern from "far-field light". This led us to the Fraunhofer Diffraction Equation
+            and thus MC integration.
+            </li>
+            <li>
+                During implementation, we found that by performing Monte Carlo Integration, we were still getting the periodic effects of a Fourier Transform. If the directional light
+                was placed near any corner, then we would see the cutoff portions reappear on the other side of the image. This is to be expected as the nature of the math causes 
+                periodicity. To resolve this issue, we added custom module that would (abstractly) attenuate the flare quadratically once it reached the bounds of the aperture function centered
+                around the lens flare. 
+            </li>
+            <li>
+                When we started this portion, we had no idea what kind of outside information we needed. By executing the research and implementation, we learned a lot about 
+                how graphics and signal processing go hand-in-hand. Looking back, this makes sense because graphics relies on computer vision, and computer vision is rooted from signal 
+                processing. 
+            </li>
+        </ul>
+
         <a class="anchor" name="gra" style="text-decoration: none; ">
             <h2>Ghost Reflections - Approach</h2>
         </a>
