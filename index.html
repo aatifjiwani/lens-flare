@@ -2,437 +2,608 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
-  <title>CS 184 | Final Project</title>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
-  <link href="style.css" rel="stylesheet">
+    <title>CS 184 | Final Project</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
 
-  <script>
-    MathJax = {
-        tex: {
-            inlineMath: [['$','$'], ['\\(','\\)']],
-            displayMath: [['$$','$$'], ['\\[','\\]']],
-            processEscapes: true,
-            processEnvironments: true,
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true,
+            }
         }
-    }
-  </script>
-  
-  <script type="text/javascript" id="MathJax-script" async
-    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
-  </script>
-  
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pseudocode@latest/build/pseudocode.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/pseudocode@latest/build/pseudocode.min.js">
-  </script>
+    </script>
+
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+        </script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pseudocode@latest/build/pseudocode.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/pseudocode@latest/build/pseudocode.min.js">
+    </script>
 </head>
 
 <body>
 
-<header class="site-header" role="banner">
-    <div class="wrapper">
-        <a class="site-title" rel="author" href="/">CS 184 Final Project</a>
-        <nav class="site-nav">
-            <div class="trigger">
-                <a class="page-link" target="_blank" href="/lens-flare-milestone/">Milestone</a>
-                <a class="page-link" target="_blank" href="/cs184-proposal/">Proposal</a>
-            </div>
-        </nav>
-    </div>  
-</header>
+    <header class="site-header" role="banner">
+        <div class="wrapper">
+            <a class="site-title" rel="author" href="/">CS 184 Final Project</a>
+            <nav class="site-nav">
+                <div class="trigger">
+                    <a class="page-link" target="_blank" href="/lens-flare-milestone/">Milestone</a>
+                    <a class="page-link" target="_blank" href="/cs184-proposal/">Proposal</a>
+                </div>
+            </nav>
+        </div>
+    </header>
 
-<div align="middle" class="jumbo">
-    <div class="content">
-        <h2>Rendering Physically-Based Lens Flare Distortions</h2>
+    <div align="middle" class="jumbo">
+        <div class="content">
+            <h2>Rendering Physically-Based Lens Flare Distortions</h2>
+
+            <p>
+                Noah Saso, Cassandra Melax, Aatif Jiwani, Ritwik Dixit
+            </p>
+
+            <p style="color: rgb(153, 209, 255); font-weight: bold; font-size: 18px;">Contents</p>
+
+            <p style="color: rgb(153, 209, 255); font-size: 14px;">
+                <a href="#abs">Abstract</a> | <a href="#sea">Starburst Effect Approach</a> | <a href="#ser">Starburst
+                    Effect Results</a>
+            </p>
+            <p style="color: rgb(153, 209, 255); font-size: 14px;">
+                <a href="#gra">Ghost Reflections Approach</a> | <a href="#grr">Ghost Reflections Results</a> | <a
+                    href="#final">Final Results</a>
+            </p>
+            <p style="color: rgb(153, 209, 255); font-size: 14px;">
+                <a href="#vid">Video</a> | <a href="#ref">References</a> | <a href="#cont">Contributions</a>
+            </p>
+        </div>
+    </div>
+    <div class="gradient"></div>
+
+    <div class="report">
+        <a class="anchor" name="abs" style="text-decoration: none; ">
+            <h2>Abstract</h2>
+        </a>
 
         <p>
-            Noah Saso, Cassandra Melax, Aatif Jiwani, Ritwik Dixit
+            Current methods for producing lens flare distortions are scene-independent, in the sense that they render a
+            flare distortion without regard to the camera viewpoint or position of the sun, and synthetically overlay
+            the distortion onto a scene that had been previously rendered or captured. In one case <b>[1]</b>, part of
+            the lens flare was physically captured which may prove to be expensive and possibly time inefficient. For
+            this project, we set out to develop a method such that we could render physics-based lens flare distortions
+            that fully depend on the viewpoint and the location of the light source.
         </p>
 
-        <p style="color: rgb(153, 209, 255); font-weight: bold; font-size: 18px;">Contents</p>
-
-        <p style="color: rgb(153, 209, 255); font-size: 14px;">
-            <a href="#abs">Abstract</a> | <a href="#sea">Starburst Effect Approach</a> | <a href="#ser">Starburst Effect Results</a>
+        <p>
+            To be able to render a physics-based flare distortion, we dug deep into the science behind what causes them.
+            To that end, we found that lens flares are composed of two pieces: a Starburst Effect and Ghost Reflections.
+            As such, we divided our approach to focus on each component separately.
         </p>
-        <p style="color: rgb(153, 209, 255); font-size: 14px;">
-            <a href="#gra">Ghost Reflections Approach</a> | <a href="#grr">Ghost Reflections Results</a> | <a href="#final">Final Results</a>
+
+        <p>
+            Our implementation is based off the Project 3-1 PathTracer. Our extended code can be viewed publicly at this
+            <a href="https://github.com/aatifjiwani/lens-flare/" target="_blank">repository</a>.
         </p>
-        <p style="color: rgb(153, 209, 255); font-size: 14px;">
-            <a href="#vid">Video</a> | <a href="#ref">References</a> | <a href="#cont">Contributions</a>
+
+
+        <a class="anchor" name="sea" style="text-decoration: none; ">
+            <h2>Starburst Effect - Approach</h2>
+        </a>
+
+        <h3>Background</h3>
+
+        <p>
+            When nearby waves of light diffract through small apertures, the diffraction pattern that appears on an
+            observation plane is usually modeled by the <a href="">Fresnel diffraction equation</a>. However, waves that
+            originate especially from far-field light sources, like the sun, produce diffraction patterns that are
+            modeled closely by the <a href="">Fraunhofer diffraction equation</a>:
         </p>
-    </div>
-</div>
-<div class="gradient"></div>
 
-<div class="report">
-    <a class="anchor" name="abs" style="text-decoration: none; "><h2>Abstract</h2></a>
+        <div align="middle" style="margin-bottom: 10px;">
 
-    <p>
-        Current methods for producing lens flare distortions are scene-independent, in the sense that they render a flare distortion without regard to the camera viewpoint or position of the sun, and synthetically overlay the distortion onto a scene that had been previously rendered or captured. In one case <b>[1]</b>, part of the lens flare was physically captured which may prove to be expensive and possibly time inefficient. For this project, we set out to develop a method such that we could render physics-based lens flare distortions that fully depend on the viewpoint and the location of the light source. 
-    </p>
+            <img src="media/fraunhofer.png">
+            <img src="media/diffraction_plot.png">
+            <br>
+            <figcaption>Fraunhofer Diffraction</figcaption>
+        </div>
 
-    <p>
-        To be able to render a physics-based flare distortion, we dug deep into the science behind what causes them. To that end, we found that lens flares are composed of two pieces: a Starburst Effect and Ghost Reflections. As such, we divided our approach to focus on each component separately. 
-    </p>
+        <p>
+            The Fraunhaufer Diffraction Equation states that for a point $I = (x, y, z)$ on the observation plane, the
+            complex magnitude of a diffracted wave with wavelength $\lambda$ is approximated by the complex integral
+            over all points on the aperture plane $A$. Note that $k$ is the wavenumber, where $k =
+            \frac{2\pi}{\lambda}$.
+            With knowledge of Fourier processing, the Fraunhofer diffraction equation can be equated to a
+            <b>two-dimensional continuous-time Fourier transform</b>. However, since
+            we intended on approximating the diffraction patterns of far-field light within a path tracing engine,
+            performing a continuous 2D integral is intractable. Therefore, for our implementation, while we ray trace a
+            pixel we simulateneously perform Monte Carlo integration over discrete samples of an aperture function
+            $A(x', y')$ and render the diffraction pattern to the screen.
+        </p>
 
-    <p>
-        Our implementation is based off the Project 3-1 PathTracer. Our extended code can be viewed publicly at this <a href="https://github.com/aatifjiwani/lens-flare/" target="_blank">repository</a>. 
-    </p>
+        <p>
+            Before we further discuss the actual implementation, it is crucial to note how we adjust the lens flare
+            based on the scene. The raw Fraunhofer diffraction equation, and thus the 2D Fourier transform, fails to
+            account for the direction of the light waves as it hits the aperture plane. As a result, the lens flare
+            would always situated at the origin of the rendered image. Based on properties of Fourier processing, we
+            found that if we additionally modulate the aperture function $A(x', y')$ by $e^{j2\pi (x'u + y'v)}$ , where
+            $(u,v)$ of offsets, then we can properly shift the lens flare based on where the sun is in the scene. This
+            will be further discussed in the implementation.
+        </p>
 
+        <div align="middle" style="margin-bottom: 20px;">
 
-    <a class="anchor" name="sea" style="text-decoration: none; "><h2>Starburst Effect - Approach</h2></a>
+            <img src="media/lensflare_centered.png">
+            <img src="media/lensflare_adjusted.png">
+            <br><br>
+            <figcaption><b>Left:</b> Sample flare using the raw diffraction equation. <b>Right: </b>Same flare, but
+                $A'(x', y') = A(x', y')e^{j2\pi (50x'-50y')}$</figcaption>
+        </div>
 
-    <h3>Background</h3>
+        <h3>Path Tracer Implementation</h3>
 
-    <p>
-        When nearby waves of light diffract through small apertures, the diffraction pattern that appears on an observation plane is usually modeled by the <a href="">Fresnel diffraction equation</a>. However, waves that originate especially from far-field light sources, like the sun, produce diffraction patterns that are modeled closely by the <a href="">Fraunhofer diffraction equation</a>: 
-    </p>
+        <p>
+            We partition the starburst implementation in PathTracer into three sections. The first two sections focus on
+            gathering data we need to perform the starburst computation.
+        </p>
 
-    <div align="middle" style="margin-bottom: 10px;">
+        <div class="submodule">
+            <img src="media/starburst_1.png" width="300px" style="float: left; margin-right: 20px;" />
+            <div class="subcontent" style="float: left; width: calc(100% - 350px);">
+                <h3>1. Calculate the sun's position on the screen: </h3>
+                <p>When the user inputs the COLLADA scene, we first check if there exists any directional lights. If
+                    there are, we perform the following for each and store their radiance: </p>
+                <ul>
+                    <li>Given the directional light $D$ with direction $(u, v, w)$ in world-coordinates, we first
+                        convert the direction to camera-space: $D_C = R^T(D-T)$</li>
+                    <li>Calculate the sun's position on the image plane by extending the camera-space direction until it
+                        hits the $z = -1$ plane.</li>
+                    <li>Use the camera's $hFoV$ and $vFoV$ to calculate the <b>normalized screen-space</b> coordinates
+                        of the directional light.</li>
+                </ul>
+            </div>
+        </div>
 
-        <img src="media/fraunhofer.png">
-        <img src="media/diffraction_plot.png">
-        <br>
-        <figcaption>Fraunhofer Diffraction</figcaption>
-    </div>
+        <div class="submodule">
+            <div class="subcontent" style="float: left; width: 80%">
+                <h3>2. Load in the Aperture function as a texture: </h3>
+                <p>As discussed above, the Starburst Effect inherently depends on the aperture function $A(x,y)$.
+                    However, to make this a tractable process, we can model the aperture function as a gray-scale image,
+                    where each pixel represents how much light will diffract if it hits that point on the aperture.
+                    Since the function is an image, we treat the aperture function $A(x,y)$ as a texture parameterized
+                    by coordinates $(u,v)$. To ensure we take only meaninful samples in the next section, we also
+                    calculate the bounding box of the non-zero region of the aperture function. </p>
+            </div>
+            <img src="media/pentf16.jpg" width="200px" style="float: left; margin-left: 20px;" />
+        </div>
 
-    <p>
-        The Fraunhaufer Diffraction Equation states that for a point $I = (x, y, z)$ on the observation plane, the complex magnitude of a diffracted wave with wavelength $\lambda$ is approximated by the complex integral over all points on the aperture plane $A$. Note that $k$ is the wavenumber, where $k = \frac{2\pi}{\lambda}$. 
-        With knowledge of Fourier processing, the Fraunhofer diffraction equation can be equated to a <b>two-dimensional continuous-time Fourier transform</b>. However, since
-        we intended on approximating the diffraction patterns of far-field light within a path tracing engine, performing a continuous 2D integral is intractable. Therefore, for our implementation, while we ray trace a pixel we simulateneously perform Monte Carlo integration over discrete samples of an aperture function $A(x', y')$ and render the diffraction pattern to the screen. 
-    </p>
+        <div class="submodule">
+            <img src="media/starburst_2.png" width="500px" style="float: left; margin-right: 20px;" />
+            <div class="subcontent" style="float: left; width: calc(100% - 550px);">
+                <h3>3. Perform Monte Carlo integration for each screen pixel: </h3>
+                <p>The ray-tracing procedure operates on a per-pixel basis, so to that end we compute the Starburst
+                    Effect per-pixel after the scene has been traced.
+                    We compute the starburst effect for each pixel $(x,y)$ as follows:
+                </p>
+                <ul>
+                    <li>Sample points $(u,v)$ on the aperture function.</li>
+                    <li>Complex modulate the sampled values by $e^{j2\pi(ux'+vy')}$ where $(x',y')$ are the screen-space
+                        offset of the lens flare. The offset is computed in Part 1.</li>
+                    <li>Perform Monte Carlo integration by taking the average of $A(u,v)e^{j2\pi(ux'+vy')}e^{-jk(ux +
+                        vy)}$ for all samples $(u,v)$</li>
+                    <li>The final result is the complex intensity of light that reaches pixel $(x,y)$. We take the real
+                        magnitude of the intensity, and scale it by the
+                        directional light's radiance to set the color of the pixel.
+                    </li>
+                </ul>
+            </div>
+        </div>
 
-    <p>
-        Before we further discuss the actual implementation, it is crucial to note how we adjust the lens flare based on the scene. The raw Fraunhofer diffraction equation, and thus the 2D Fourier transform, fails to account for the direction of the light waves as it hits the aperture plane. As a result, the lens flare would always situated at the origin of the rendered image. Based on properties of Fourier processing, we found that if we additionally modulate the aperture function $A(x', y')$ by $e^{j2\pi (x'u + y'v)}$ , where $(u,v)$ of offsets, then we can properly shift the lens flare based on where the sun is in the scene. This will be further discussed in the implementation.
-    </p>
+        <p>
+            As a small implementation note, we added the ability to tune the size of the flare's inner radius and the
+            overall intensity of the starburst. By tuning these parameters,
+            we can effectively enhance the artistic nature of the lens flare.
+        </p>
 
-    <div align="middle" style="margin-bottom: 20px;">
+        <a class="anchor" name="ser" style="text-decoration: none; ">
+            <h2>Starburst Effect - Results</h2>
+        </a>
 
-        <img src="media/lensflare_centered.png">
-        <img src="media/lensflare_adjusted.png">
-        <br><br>
-        <figcaption><b>Left:</b> Sample flare using the raw diffraction equation. <b>Right: </b>Same flare, but $A'(x', y') = A(x', y')e^{j2\pi (50x'-50y')}$</figcaption>
-    </div>
+        <h3>Background</h3>
 
-    <h3>Path Tracer Implementation</h3>
-
-    <p>
-        We partition the starburst implementation in PathTracer into three sections. The first two sections focus on gathering data we need to perform the starburst computation. 
-    </p>
-
-    <div class="submodule">
-        <img src="media/starburst_1.png" width="300px" style="float: left; margin-right: 20px;"/>
-        <div class="subcontent" style="float: left; width: calc(100% - 350px);">
-            <h3>1. Calculate the sun's position on the screen: </h3>
-            <p>When the user inputs the COLLADA scene, we first check if there exists any directional lights. If there are, we perform the following for each and store their radiance: </p>
+        <p>
+            A crucial step in producing photorealistic lens flares, after implementing the physically-based diffraction
+            equation and other math described above, is to understand and design aperture functions that output
+            desirable images. This involved deconstructing apertures into their smaller components and analyzing how
+            individual attributes of the dirty models contributed to the rendered lens flares. Doing so allowed us to
+            isolate three main features, each with their own variables:
+        </p>
+        <div class="center">
             <ul>
-                <li>Given the directional light $D$ with direction $(u, v, w)$ in world-coordinates, we first convert the direction to camera-space: $D_C = R^T(D-T)$</li>
-                <li>Calculate the sun's position on the image plane by extending the camera-space direction until it hits the $z = -1$ plane.</li>
-                <li>Use the camera's $hFoV$ and $vFoV$ to calculate the <b>normalized screen-space</b> coordinates of the directional light.</li>
+                <li>primary pupil's shape and size</li>
+                <li>dots of varying size, position, and opacity</li>
+                <li>lines of varying slope, length, position, and opacity</li>
             </ul>
         </div>
-    </div>
 
-    <div class="submodule">
-        <div class="subcontent" style="float: left; width: 80%">
-            <h3>2. Load in the Aperture function as a texture: </h3>
-            <p>As discussed above, the Starburst Effect inherently depends on the aperture function $A(x,y)$. However, to make this a tractable process, we can model the aperture function as a gray-scale image, where each pixel represents how much light will diffract if it hits that point on the aperture. Since the function is an image, we treat the aperture function $A(x,y)$ as a texture parameterized by coordinates $(u,v)$. To ensure we take only meaninful samples in the next section, we also calculate the bounding box of the non-zero region of the aperture function. </p>
+        <p>These components in tandem work to simulate a dirty lens and create an accurate depiction of a lens flare for
+            a given scene.</p>
+
+        <h3>Deconstruction</h3>
+
+        <p>
+            Below, the primary pupil is held constant while the effects of varying dots and lines are tested. We
+            discovered that the presence and sizes of dots corresponded to radial artifacts that we see in the second
+            from the left lens flare (on the bottom) which are not present in the plain one. These can lead to various
+            subtle rings that appear toward the middle of lens flares. Additionally, lines corresponded to the 'rays'
+            that appear to shoot out of the center of the starburst, with the slopes affecting the positions of these
+            rays. Dots and lines as seen below simulate microscopic dust and scratches on the glass which significantly
+            alter the diffraction of light.
+        </p>
+
+        <div class="center" style="margin-bottom:1rem">
+            <div class="starburst-results">
+                <img src="media/aperture_normal.png">
+                <img src="media/aperture_normal.out.png">
+            </div>
+            <div class="starburst-results">
+                <img src="media/aperture_dots.png">
+                <img src="media/aperture_dots.out.png">
+            </div>
+            <div class="starburst-results">
+                <img src="media/aperture_lines.png">
+                <img src="media/aperture_lines.out.png">
+            </div>
+            <div class="starburst-results">
+                <img src="media/aperture_both.png">
+                <img src="media/aperture_both.out.png">
+            </div>
         </div>
-        <img src="media/pentf16.jpg" width="200px" style="float: left; margin-left: 20px;"/>
-    </div>
 
-    <div class="submodule">
-        <img src="media/starburst_2.png" width="500px" style="float: left; margin-right: 20px;"/>
-        <div class="subcontent" style="float: left; width: calc(100% - 550px);">
-            <h3>3. Perform Monte Carlo integration for each screen pixel: </h3>
-            <p>The ray-tracing procedure operates on a per-pixel basis, so to that end we compute the Starburst Effect per-pixel after the scene has been traced.
-                We compute the starburst effect for each pixel $(x,y)$ as follows:
-            </p>
-            <ul>
-                <li>Sample points $(u,v)$ on the aperture function.</li>
-                <li>Complex modulate the sampled values by $e^{j2\pi(ux'+vy')}$ where $(x',y')$ are the screen-space offset of the lens flare. The offset is computed in Part 1.</li>
-                <li>Perform Monte Carlo integration by taking the average of $A(u,v)e^{j2\pi(ux'+vy')}e^{-jk(ux + vy)}$ for all samples $(u,v)$</li>
-                <li>The final result is the complex intensity of light that reaches pixel $(x,y)$. We take the real magnitude of the intensity, and scale it by the 
-                    directional light's radiance to set the color of the pixel. 
-                </li>
-            </ul>
+        <p>
+            After settling on varying slopes of lines as the primary contributor to realistic looking lens flares in the
+            above trials, we then experimented with varying pupil size and shape. A pentagon shaped pupil ended up
+            creating interesting looking flares with stronger orbs in the center and subtle patterns in the diffracted
+            light seen below. But most importantly, the size of the pupil contributed significantly to the character and
+            emphasized components of the output flares. Smaller central pupils led to more intense and unique lens
+            flares, while larger apertures led to fairly dim patterns that get washed out in scenes. The smallest sizes
+            of pupils we tried ended up looking fairly unnatural; the sweet spot is probably somewhere between the
+            second and third aperture functions below.
+        </p>
+
+        <div class="center" style="margin-bottom:1rem">
+            <div class="starburst-results">
+                <img src="media/pentf8.jpg">
+                <img src="media/pentf8_starburst.jpg">
+            </div>
+            <div class="starburst-results">
+                <img src="media/pentf16.jpg">
+                <img src="media/pentf16_starburst.jpg">
+            </div>
+            <div class="starburst-results">
+                <img src="media/pentf22.jpg">
+                <img src="media/pentf22_starburst.jpg">
+            </div>
+            <div class="starburst-results">
+                <img src="media/pentf32.jpg">
+                <img src="media/pentf32_starburst.jpg">
+            </div>
         </div>
-    </div>
 
-    <p>
-        As a small implementation note, we added the ability to tune the size of the flare's inner radius and the overall intensity of the starburst. By tuning these parameters,
-        we can effectively enhance the artistic nature of the lens flare. 
-    </p>
+        <p>
+            The results seen above make sense since camera lenses tend to be quite small compared to the size of images
+            they capture. The largest pupils don't produce very strong lens flares, probably because disturbances in the
+            diffraction caused by the 'dirty' components are minimal compared to the amount of light taken in. When the
+            pupil shrinks in relation to the scene and thus the image, the diffraction is more pronounced, and the
+            artifacts we expect to see intensify.
+        </p>
 
-    <a class="anchor" name="ser" style="text-decoration: none; "><h2>Starburst Effect - Results</h2></a>
+        <h3>Results</h3>
 
-    <h3>Background</h3>
+        <p>
+            Putting it all together, here are some scenes rendered with various aperture functions. On the left is the
+            Blender scene with a directional light source.
+        </p>
 
-    <p>
-        A crucial step in producing photorealistic lens flares, after implementing the physically-based diffraction equation and other math described above, is to understand and design aperture functions that output desirable images. This involved deconstructing apertures into their smaller components and analyzing how individual attributes of the dirty models contributed to the rendered lens flares. Doing so allowed us to isolate three main features, each with their own variables:
-    </p>
-    <div class="center">
-        <ul>
-            <li>primary pupil's shape and size</li>
-            <li>dots of varying size, position, and opacity</li>
-            <li>lines of varying slope, length, position, and opacity</li>
-        </ul>
-    </div>
-
-    <p>These components in tandem work to simulate a dirty lens and create an accurate depiction of a lens flare for a given scene.</p>
-
-    <h3>Deconstruction</h3>
-
-    <p>
-        Below, the primary pupil is held constant while the effects of varying dots and lines are tested. We discovered that the presence and sizes of dots corresponded to radial artifacts that we see in the second from the left lens flare (on the bottom) which are not present in the plain one. These can lead to various subtle rings that appear toward the middle of lens flares. Additionally, lines corresponded to the 'rays' that appear to shoot out of the center of the starburst, with the slopes affecting the positions of these rays. Dots and lines as seen below simulate microscopic dust and scratches on the glass which significantly alter the diffraction of light.
-    </p>
-
-    <div class="center" style="margin-bottom:1rem">
-        <div class="starburst-results">
-            <img src="media/aperture_normal.png">
-            <img src="media/aperture_normal.out.png">
+        <h4 style="text-decoration: underline;">Dragon</h4>
+        <div class="center starburst-renders">
+            <img src="media/dragon_blender.png" height="200" style="margin-bottom: 1rem;">
+            <div class="starburst-results bigger">
+                <img src="media/bbg_psmll.png">
+                <img src="media/dragon_psmll.png">
+            </div>
+            <div class="starburst-results bigger">
+                <img src="media/bbg_p4_15.png">
+                <img src="media/dragon_p4_15.png">
+            </div>
+            <div class="starburst-results bigger">
+                <img src="media/bbg_p500_14.png">
+                <img src="media/dragon_p500_14.png">
+            </div>
         </div>
-        <div class="starburst-results">
-            <img src="media/aperture_dots.png">
-            <img src="media/aperture_dots.out.png">
+
+        <p>
+            The starburst on the far left is rendered with the smallest aperture function and more lines with similar
+            slopes, leading to the wider gaps between the groups of rays seen in the flare. The middle starburst is
+            created with a slightly larger pupil and a more even distribution of slopes of lines. The last flare is
+            rendered with the largest pupil, leading to the faint pattern which is hard to differentiate from a typical
+            point light source.
+        </p>
+
+        <h4 style="text-decoration: underline;">Pyramids</h4>
+        <div class="center starburst-renders">
+            <img src="media/pyramid_blender.png" height="200" style="margin-bottom: 1rem;">
+            <div class="starburst-results bigger">
+                <img src="media/bbg_psmll.png">
+                <img src="media/pyramid_pentsmll.png">
+            </div>
+            <div class="starburst-results bigger">
+                <img src="media/bbg_p500_14.png">
+                <img src="media/pyramid_p500_14.png">
+            </div>
         </div>
-        <div class="starburst-results">
-            <img src="media/aperture_lines.png">
-            <img src="media/aperture_lines.out.png">
+
+        <p>
+            In the above scenes, we only render the pyramids with the extremes: an aperture function with a small pupil
+            (on the left) and a large pupil (on the right). The difference is much more apparent than in the dragon
+            scene due to the scenes' different environments. Needless to say, the aperture function used on the left is
+            impressively photorealistic compared to the others.
+        </p>
+
+        <a class="anchor" name="gra" style="text-decoration: none; ">
+            <h2>Ghost Reflections - Approach</h2>
+        </a>
+
+        <p>
+            Ghosts are caused by internal reflections between a camera’s lenses. As the image below shows, if we select
+            a lens $i$ and a lens $j$ to the right of $i$,
+            all of the rays that bounce from lens $j$ to lens $i$ and then to the sensor plane will form one ghost. The
+            ghost more or less looks like the shape of the aperture. </p>
+        <div class="center" style="margin-bottom:1rem">
+            <img src="media/ghost_diagrams1.png">
         </div>
-        <div class="starburst-results">
-            <img src="media/aperture_both.png">
-            <img src="media/aperture_both.out.png">
+
+
+        <p>
+            We first tried implementing the approach in [2]. They used a fractional fourier transform and nonlinear
+            transformations among other things, and did not specify a lot of key parameters. We found existing
+            implementations and tried applying them to aperture images to create ghosts, but the results were
+            unsuccessful,
+            so we ended up doing the following approach with raytracing.
+        </p>
+
+        <h3>Raytracing</h3>
+
+        <p>To find the position and size of each ghost, we did one dimensional ray tracing through the camera. Each ray
+            is
+            defined by 1) distance from the optical axis and 2) angle that rays hit the camera. Each is encoded as a 2D
+            Vector. We traced rays through the camera system by multiplying each of them by a series of matrices.
+        </p>
+
+        <p>
+            Rays originate at the camera’s entrance. The rays corresponding to a ghost will come in at the angle at
+            which the
+            sun
+            hits the camera. This is the same for all rays from the sun since the sun is a far-field directional light.
+        </p>
+
+        <p>
+            We used an entrance pupil size of 14.5. To get the lowest point that the rays corresponding to one ghost hit
+            the
+            aperture, we traced the ray $( r= 14.5, sun angle)$ onto the sensor plane. To get the highest point, we
+            traced
+            the ray $(r = -14.5, sun angle).$
+        </p>
+
+        <div class="center" style="margin-bottom:1rem">
+            <img src="media/ghost_diagrams2.png">
+            <img src="media/ghost_diagrams3.png">
         </div>
-    </div>
 
-    <p>
-        After settling on varying slopes of lines as the primary contributor to realistic looking lens flares in the above trials, we then experimented with varying pupil size and shape. A pentagon shaped pupil ended up creating interesting looking flares with stronger orbs in the center and subtle patterns in the diffracted light seen below. But most importantly, the size of the pupil contributed significantly to the character and emphasized components of the output flares. Smaller central pupils led to more intense and unique lens flares, while larger apertures led to fairly dim patterns that get washed out in scenes. The smallest sizes of pupils we tried ended up looking fairly unnatural; the sweet spot is probably somewhere between the second and third aperture functions below.
-    </p>
 
-    <div class="center" style="margin-bottom:1rem">
-        <div class="starburst-results">
-            <img src="media/pentf8.jpg">
-            <img src="media/pentf8_starburst.jpg">
+        <p>
+            Given the curvature/radius and index of refraction for each lens, we can define matrices for translating,
+            refracting, and reflecting. To figure out where an incoming ray lands on the sensor plane, we multiply a
+            vector
+            by a series of these matrices for each lens like the one in the image below. We take the radius of the
+            resulting ray to determine where on the sensor plane
+            it hits. We implemented this raytracing
+            in
+            python first to make sure the values looked appropriate.
+        </p>
+
+        <div class="center" style="margin-bottom:1rem">
+            <img src="media/ghost_diagrams4.png">
         </div>
-        <div class="starburst-results">
-            <img src="media/pentf16.jpg">
-            <img src="media/pentf16_starburst.jpg">
+
+        <h3>Forming the image</h3>
+
+        <p>
+            Ghosts are drawn on the axis from the sun to the center of the screen, and they are rotated to line up with
+            the
+            axis.
+        </p>
+
+        <p>
+            To get one ghost, we trace the ray with $r = 14.5$ and $r = -14.5$ as mentioned before. The rays arrive at
+            the
+            sensor plane with $r=r1$ and $r=r2$ respectively. As you can see from the image, $r1$ and $r2$ are the
+            distance
+            from the sun along the axis I just mentioned. The size of the ghost is $|r2-r1|$.
+        </p>
+
+        <div class="center" style="margin-bottom:1rem">
+            <img src="media/ghost_diagrams_reference.png">
         </div>
-        <div class="starburst-results">
-            <img src="media/pentf22.jpg">
-            <img src="media/pentf22_starburst.jpg">
+
+
+        <p>
+            It took us hours of dissecting the paper [4] to realize this. They did not make it obvious how they were
+            translating from 1D to 2D.
+        </p>
+
+        <h3>C++ Implementation</h3>
+        <p>First, we wrote functions to trace rays and a function to draw a ghost given r1, r2, and a color. We then
+            wrote a function to rotate, shift, and scale each ghost
+            with
+            respect to the sun. Using the sun position (normalized to be between 0 and 1), we found axis ray = (sun.x,
+            sun.y) and
+            sun_angle = atan2((axis_ray.y-0.5), (axis_ray.x-0.5)).</p>
+
+        <p>For the aperture image, we read in a picture of a pentagon, and converted it into an array of pixels that
+            acted
+            as a texture map. We then reused code from project 1 to draw two textured triangles for each ghost to the
+            framebuffer.</p>
+
+        <h3>Additional Components</h3>
+        <p>We had to consider a few more details to get our images.</p>
+        <p>We wanted the ghosts to be added on top of the scene and stacked on top of each other, so we drew them to a
+            “ghost_buffer” first and changed some path tracer logic.</p>
+
+        <p>For ray tracing, when the ray hit the aperture plane, we had to check whether the ray was within the radius
+            of
+            the aperture. If not, it would not go through the aperture opening, and was “blocked”. We had to recast the
+            ray
+            using an equation from the paper in order to find the new starting radius. With this radius and the same
+            angle,
+            the ray would hit the aperture plane at exactly the maximum radius, or the edge. We were supposed to scale
+            the
+            brightness of these ghosts since less light hit the sensor plane, but we did not have enough time.</p>
+
+        <div class="center" style="margin-bottom:1rem">
+            <img src="media/ghost_diagrams5.png">
         </div>
-        <div class="starburst-results">
-            <img src="media/pentf32.jpg">
-            <img src="media/pentf32_starburst.jpg">
+
+
+        <p>To get the correct sizes of the ghosts, get the correct amounts of transparency, and make sure the
+            transparency of the ghosts scaled with size, we had to tune parameters. If given more time, we might have
+            made the ghosts a bit bigger overall, made tiny ghosts less opaque, and decreased the rate with which bigger
+            ghosts got translucent.</p>
+
+        <p>Finally, different wavelengths of light refract differently through the camera. This is why we see different
+            colored ghosts in real lens flare images as well as red and blue shifts on either side of the ghosts. To
+            implement this, we looked up indices of refraction for each lens for green, red, and blue wavelengths. We
+            raytraced each color through matrices with the correct indices of refraction to figure out where a ghost of
+            that
+            color would land and then colored the ghosts accordingly.</p>
+
+        <a class="anchor" name="grr" style="text-decoration: none; ">
+            <h2>Ghost Reflections - Results</h2>
+        </a>
+
+        <p>Here are a few renders of naked ghosts from different angles, without raytracing the scene itself or the
+            starburst.</p>
+
+        <div align="middle">
+            <table style="width: 100%">
+                <tr>
+                    <td align="middle"><img src="media/naked_ghost1.png" align="middle" width="505px" /></td>
+                    <td align="middle"><img src="media/naked_ghost2.png" align="middle" width="480px" /></td>
+                    <td align="middle"><img src="media/naked_ghost3.png" align="middle" width="480px" /></td>
+                </tr>
+            </table>
         </div>
-    </div>
 
-    <p>
-        The results seen above make sense since camera lenses tend to be quite small compared to the size of images they capture. The largest pupils don't produce very strong lens flares, probably because disturbances in the diffraction caused by the 'dirty' components are minimal compared to the amount of light taken in. When the pupil shrinks in relation to the scene and thus the image, the diffraction is more pronounced, and the artifacts we expect to see intensify.
-    </p>
+        <p>Here are a couple renders showing the red and blue shift for the ghosts corresponding to the different
+            wavelengths. The image on the left is aliased since it's zoomed in.</p>
 
-    <h3>Results</h3>
-
-    <p>
-        Putting it all together, here are some scenes rendered with various aperture functions. On the left is the Blender scene with a directional light source.
-    </p>
-
-    <h4 style="text-decoration: underline;">Dragon</h4>
-    <div class="center starburst-renders">
-        <img src="media/dragon_blender.png" height="200" style="margin-bottom: 1rem;">
-        <div class="starburst-results bigger">
-            <img src="media/bbg_psmll.png">
-            <img src="media/dragon_psmll.png">
+        <div align="middle">
+            <table style="width: 100%">
+                <tr>
+                    <td align="middle"><img src="media/ghost_redshift.png" align="middle" width="480px" /></td>
+                    <td align="middle"><img src="media/ghost_blueshift.png" align="middle" width="404px" /></td>
+                </tr>
+            </table>
         </div>
-        <div class="starburst-results bigger">
-            <img src="media/bbg_p4_15.png">
-            <img src="media/dragon_p4_15.png">
+
+
+
+        <a class="anchor" name="final" style="text-decoration: none;">
+            <h2>Final Results</h2>
+        </a>
+
+        <h3>Renders</h3>
+
+        <p>The gif shows the rendering speed of one frame, the first image shows the final rendering with the physically
+            accurate lens flare, and the second image shows a lens flare with a bunch of random ghosts for fun!.</p>
+        <p>The three images shown below are our final renders that contain both a <b>Starburst Effect</b> and a series
+            of <b>Ghost Reflections.</b> On the left, we present a GIF depicting the render process of our Giza Pyramids
+            scene. The render in the middle is the Giza Pyramids rendered at a <b>different viewpoint.</b> Notice how
+            the lens flare has effectively shifted and how the ghost reflections have changed. The render on the right
+            is a render with a bunch of ghosts added for fun!</p>
+
+        <div class="submodule">
+            <img src="media/pyramid_pentsmll_ghost.gif" width="31.5%"
+                style="float: left; padding-left: 10px; padding-right: 10px;" />
+            <img src="media/pyramid_pent4_17_ghost.png" width="31.5%"
+                style="float: left; padding-left: 10px; padding-right: 10px;" />
+            <img src="media/custom_ghost.png" width="31.5%"
+                style="float: left; padding-left: 10px; padding-right: 10px;" />
         </div>
-        <div class="starburst-results bigger">
-            <img src="media/bbg_p500_14.png">
-            <img src="media/dragon_p500_14.png">
+
+        <h3>Final Animation</h3>
+
+        <p>We present our final animation of the Giza Pyramids scene. We've been able to modify the backend of
+            PathTracer to save and render 500 frames (40 FPS) of the camera rotating around the pyramids. Although
+            the Starburst remains largely static (notice how it becomes brighter near the end), the Ghost
+            Reflections are changing in a very interesting way. Not only is the angle adjusting such that it remains
+            on the axis towards the center, but the reflections itself are changing size and opacity as the camera's
+            viewpoint rotates.
+        </p>
+
+        <div style="display:flex; justify-content: center; align-items:center;">
+            <video width="400" controls style="margin: auto; width: 400px;">
+                <source src="media/animation.mp4" type="video/mp4">
+                Your browser does not support HTML video.
+            </video>
         </div>
-    </div>
-
-    <p>
-        The starburst on the far left is rendered with the smallest aperture function and more lines with similar slopes, leading to the wider gaps between the groups of rays seen in the flare. The middle starburst is created with a slightly larger pupil and a more even distribution of slopes of lines. The last flare is rendered with the largest pupil, leading to the faint pattern which is hard to differentiate from a typical point light source.
-    </p>
-
-    <h4 style="text-decoration: underline;">Pyramids</h4>
-    <div class="center starburst-renders">
-        <img src="media/pyramid_blender.png" height="200" style="margin-bottom: 1rem;">
-        <div class="starburst-results bigger">
-            <img src="media/bbg_psmll.png">
-            <img src="media/pyramid_pentsmll.png">
-        </div>
-        <div class="starburst-results bigger">
-            <img src="media/bbg_p500_14.png">
-            <img src="media/pyramid_p500_14.png">
-        </div>
-    </div>
-
-    <p>
-        In the above scenes, we only render the pyramids with the extremes: an aperture function with a small pupil (on the left) and a large pupil (on the right). The difference is much more apparent than in the dragon scene due to the scenes' different environments. Needless to say, the aperture function used on the left is impressively photorealistic compared to the others.
-    </p>
-
-    <a class="anchor" name="gra" style="text-decoration: none; "><h2>Ghost Reflections - Approach</h2></a>
-
-    <p>
-        Ghosts are caused by internal reflections between a camera’s lenses. In particular, given two lenses, all of the rays that bounce from one lens to the other once will form a ghost. More specifically, the ray will travel forwards, reflect off of lens $j$ backwards, and finally reflect off lens $i$ forwards, where $i < j$. The ghost more or less looks like the shape of the aperture.
-    </p>
-
-    <div class="center" style="margin-bottom:1rem">
-        <img src="media/ghost_diagrams1.png">
-    </div>
-    
-
-    <p>
-        We first tried implementing the approaching in [2]. They used a fractional fourier transform and nonlinear transformations among other things, and did not specify a lot of key parameters. We found existing implementations and tried applying them to aperture images to create ghosts, but the results were unsuccessful, so we ended up doing the following approach with raytracing.
-    </p>
-
-    <h3>Raytracing</h3>
-
-    <p>To find the position and size of each ghost, we did one dimensional ray tracing through the camera. Each ray is defined by 1) distance from the optical axis and 2) angle that rays hit the camera. Each is encoded as a 2D Vector. 
-    </p>
-
-    <p>
-        Rays originate at the camera’s entrance, and we then use a series of matrix multiplications to determine where the ray will hit the sensor plane. The rays corresponding to a ghost will come in at the angle at which the sun hits the camera. This is the same for all rays from the sun since the sun is a far-field directional light.
-    </p>
-
-    <p>
-        We used an entrance pupil size of 14.5. To get the lowest point that the rays corresponding to one ghost hit the aperture, we traced the ray $( r= 14.5, sun_angle)$ onto the sensor plane. To get the highest point, we traced the ray $(r = -14.5, sun_angle).$ 
-    </p>
-
-    <div class="center" style="margin-bottom:1rem">
-        <img src="media/ghost_diagrams2.png">
-        <img src="media/ghost_diagrams3.png">
-    </div>
-    
-
-    <p>
-        Given the curvature/radius and index of refraction for each lens, we can define matrices for translating, refracting, and reflecting. To figure out where an incoming ray lands on the sensor plane, we multiply a vector by a series of these matrices for each lens like the one in the image below. We implemented this raytracing in python first to make sure the values looked appropriate.
-    </p>
-
-    <div class="center" style="margin-bottom:1rem">
-        <img src="media/ghost_diagrams4.png">
-    </div>
-
-    <h3>Forming the image</h3>
-
-    <p>
-        Ghosts are drawn on the axis from the sun to the center of the screen, and they are rotated to line up with the axis.
-    </p>
-
-    <p>
-        To get one ghost, we trace the ray with $r = 14.5$ and $r = -14.5$ as mentioned before. The rays arrive at the sensor plane with $r=r1$ and $r=r2$ respectively. As you can see from the image, $r1$ and $r2$ are the distance from the sun along the axis I just mentioned. The size of the ghost is $|r2-r1|$.
-    </p>
-
-    <div class="center" style="margin-bottom:1rem">
-        <img src="media/ghost_diagrams_reference.png">
-    </div>
-    
-
-    <p>
-        It took us hours of dissecting the paper [4] to realize this. They did not make it obvious how they were translating from 1D to 2D. 
-    </p>
-
-    <h3>C++ Implementation</h3>
-    <p>First, we wrote functions to trace rays through the three lens transformations. Then, we wrote a draw_ghost(r1, r2, color) function that we called each time. We wrote a function to rotate, shift, and scale each ghost with respect to the sun. To get the sun angle, using the sun position we could find axis ray = <sun.x, sun.y> and sun_angle = atan2((axis_ray.y-0.5), (axis_ray.x-0.5)).</p>
-    
-    <p>For the aperture image, we read in a picture of a pentagon, and converted it into an array of pixels that acted as a texture map. We then reused code from project 1 to draw two textured triangles for each ghost to the framebuffer.</p>
-    
-    <h3>Additional Components</h3>
-    <p>We wanted the ghosts to be added on top of the scene and stacked on top of each other, so we drew them to a “ghost_buffer” first and changed some path tracer logic.</p>
-    
-    <p>For ray tracing, when the ray hit the aperture plane, we had to check whether the ray was within the radius of the aperture. If not, it would not go through the aperture opening, and was “blocked”. We had to recast the ray using an equation from the paper in order to find the new starting radius. With this radius and the same angle, the ray would hit the aperture plane at exactly the maximum radius, or the edge. We were supposed to scale the brightness of these ghosts since less light hit the sensor plane, but we did not have enough time.</p>
-    
-    <div class="center" style="margin-bottom:1rem">
-        <img src="media/ghost_diagrams5.png">
-    </div>
-    
-
-    <p>We also ensured that a ghost’s transparency scales with its size.</p>
-
-    <p>Finally, different wavelengths of light refract differently through the camera. This is why we see different colored ghosts in real lens flare images as well as red and blue shifts on either side of the ghosts. To implement this, we looked up indices of refraction for each lens for green, red, and blue wavelengths. We raytraced each color through matrices with the correct indices of refraction to figure out where a ghost of that color would land and then colored the ghosts accordingly.</p>
-
-    <a class="anchor" name="grr" style="text-decoration: none; "><h2>Ghost Reflections - Results</h2></a>
-
-    <p>Here are a few renders of naked ghosts from different angles, without raytracing the scene itself or the starburst.</p>
-
-    <div align="middle">
-        <table style="width: 100%">
-          <tr >
-              <td align="middle"><img src="media/naked_ghost1.png" align="middle" width="505px" /></td>
-            <td align="middle"><img src="media/naked_ghost2.png" align="middle" width="480px" /></td>
-            <td align="middle"><img src="media/naked_ghost3.png" align="middle" width="480px" /></td>
-          </tr>
-        </table>
-      </div>
-
-      <p>Here are a couple renders showing the red and blue shift for the ghosts corresponding to the different wavelengths.</p>
-
-      <div align="middle">
-        <table style="width: 100%">
-          <tr >
-            <td align="middle"><img src="media/ghost_redshift.png" align="middle" width="480px" /></td>
-            <td align="middle"><img src="media/ghost_blueshift.png" align="middle" width="404px" /></td>
-          </tr>
-        </table>
-      </div>
 
 
-
-    <a class="anchor" name="final" style="text-decoration: none;"><h2>Final Results</h2></a>
-
-    <h3>Renders</h3>
-
-    <p>The three images shown below are our final renders that contain both a <b>Starburst Effect</b> and a series of <b>Ghost Reflections.</b> On the left, we present a GIF depicting the render process of our Giza Pyramids scene. The render in the middle is the Giza Pyramids rendered at a <b>different viewpoint.</b> Notice how the lens flare has effectively shifted and how the ghost reflections have changed. The render on the right is a render with a custom ghost reflection to enhance the effect of the chromatic
-    abberration. </p>
-
-    <div class="submodule">
-        <img src="media/pyramid_pentsmll_ghost.gif" width="31.5%" style="float: left; padding-left: 10px; padding-right: 10px;"/>
-        <img src="media/pyramid_pent4_17_ghost.png" width="31.5%" style="float: left; padding-left: 10px; padding-right: 10px;"/>
-        <img src="media/custom_ghost.png" width="31.5%" style="float: left; padding-left: 10px; padding-right: 10px;"/>
-    </div>
-
-    <h3>Final Animation</h3>
-
-    <p>We present our final animation of the Giza Pyramids scene. We've been able to modify the backend of PathTracer to save and render 500 frames (40 FPS) of the camera rotating around the pyramids. Although the Starburst remains largely static (notice how it becomes brighter near the end), the Ghost Reflections are changing in a very interesting way. Not only is the angle adjusting such that it remains on the axis towards the center, but the reflections itself are changing size and opacity as the camera's viewpoint rotates. 
-    </p>
-
-    <div style="display:flex; justify-content: center; align-items:center;">
-        <video width="400" controls style="margin: auto; width: 400px;">
-            <source src="media/animation.mp4" type="video/mp4">
-            Your browser does not support HTML video.
-        </video>
-    </div>
+        <a class="anchor" name="vid" style="text-decoration: none;">
+            <h2>Video</h2>
+        </a>
 
 
-    <a class="anchor" name="vid" style="text-decoration: none;"><h2>Video</h2></a>
+        <a class="anchor" name="ref" style="text-decoration: none;">
+            <h2>References</h2>
+        </a>
+
+        <p>
+            <strong>[1]: </strong> Wu, Yicheng et al. 2020. Single-Image Lens Flare Removal. ArXiv abs/2011.12485:
+            n.
+            pag.
+        </p>
+
+        <p>
+            <strong>[2]: </strong>Matthias Hullin, Elmar Eisemann, Hans-Peter Seidel, and Sungkil Lee. 2011.
+            Physically-based real-time lens flare rendering. <br>ACM Trans. Graph. 30, 4, Article 108 (July 2011),
+            10
+            pages.
+            DOI:https://doi.org/10.1145/2010324.1965003
+        </p>
+
+        <p>
+            <strong>[3]: </strong>Sangmin Lee and Sungkil Lee. 2016. Interactive additive diffraction
+            synthesis.<br>In
+            Proceedings of the 37th Annual Conference of the European Association for Computer Graphics: Posters (EG
+            '16).
+            Eurographics Association, Goslar, DEU, 11–12.
+        </p>
+
+        <p>
+            <strong>[4]: </strong>Sungkil Lee and Elmar Eisemann. 2013. Practical Real-Time Lens-Flare Rendering
+            .<br>Eurographics Symposium on Rendering, Volume 32 (2013), Number 4.
+        </p>
 
 
-    <a class="anchor" name="ref" style="text-decoration: none;"><h2>References</h2></a>
-
-    <p>
-        <strong>[1]: </strong> Wu, Yicheng et al. 2020. Single-Image Lens Flare Removal. ArXiv abs/2011.12485: n. pag.
-    </p>
-
-    <p>
-        <strong>[2]: </strong>Matthias Hullin, Elmar Eisemann, Hans-Peter Seidel, and Sungkil Lee. 2011. Physically-based real-time lens flare rendering. <br>ACM Trans. Graph. 30, 4, Article 108 (July 2011), 10 pages. DOI:https://doi.org/10.1145/2010324.1965003
-    </p>
-
-    <p>
-        <strong>[3]: </strong>Sangmin Lee and Sungkil Lee. 2016. Interactive additive diffraction synthesis.<br>In Proceedings of the 37th Annual Conference of the European Association for Computer Graphics: Posters (EG '16). Eurographics Association, Goslar, DEU, 11–12.
-    </p>
-
-    <p>
-        <strong>[4]: </strong>Sungkil Lee and Elmar Eisemann. 2013. Practical Real-Time Lens-Flare Rendering .<br>Eurographics Symposium on Rendering, Volume 32 (2013), Number 4.
-    </p>
-
-
-    <a class="anchor" name="cont" style="text-decoration: none;"><h2>Contributions</h2></a>
+        <a class="anchor" name="cont" style="text-decoration: none;">
+            <h2>Contributions</h2>
+        </a>
 
     <p>
         This project was easily divisible into two halves given the nature of lens flares: Aatif and Noah worked on rendering the starburst effect while Cassandra and Ritwik worked on the ghost reflection renders. Everyone helped with initial brainstorming and the creation of the report.
@@ -468,6 +639,7 @@
 
     <br>
 
-</div>
+    </div>
 </body>
+
 </html>
